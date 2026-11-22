@@ -7,6 +7,8 @@ import 'package:learner_video_player/features/settings/data/prefs_settings_repos
 import 'package:learner_video_player/features/settings/presentation/settings_providers.dart';
 import 'package:learner_video_player/features/translation/data/webview_translation_launcher.dart';
 import 'package:learner_video_player/features/translation/presentation/translation_providers.dart';
+import 'package:learner_video_player/features/youtube/data/ytdlp_video_resolver.dart';
+import 'package:learner_video_player/features/youtube/presentation/youtube_providers.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -26,6 +28,7 @@ Future<void> main() async {
         translationLauncherProvider.overrideWithValue(
           WebviewTranslationLauncher(),
         ),
+        videoResolverProvider.overrideWithValue(YtDlpVideoResolver()),
         settingsRepositoryProvider.overrideWithValue(
           PrefsSettingsRepository(prefs),
         ),

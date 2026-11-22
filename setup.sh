@@ -30,6 +30,10 @@ if [ "$(uname)" = "Darwin" ]; then
   done
 fi
 
+if ! command -v yt-dlp >/dev/null; then
+  echo "Note: YouTube links need yt-dlp. Install it with: brew install yt-dlp"
+fi
+
 flutter pub get
 dart format lib test
 flutter analyze || echo "(analyze reported issues above, fix or send them to Claude)"

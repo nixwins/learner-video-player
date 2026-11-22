@@ -14,6 +14,7 @@ import 'package:learner_video_player/features/player/presentation/player_provide
 import 'package:learner_video_player/features/player/presentation/subtitle_overlay.dart';
 import 'package:learner_video_player/features/translation/presentation/translation_panel.dart';
 import 'package:learner_video_player/features/translation/presentation/translation_providers.dart';
+import 'package:learner_video_player/features/youtube/presentation/open_url_dialog.dart';
 
 const _controlsHideDelay = Duration(milliseconds: 2500);
 const _animation = Duration(milliseconds: 200);
@@ -55,6 +56,17 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   Future<void> _pick(XTypeGroup group) async {
     final file = await openFile(acceptedTypeGroups: [group]);
     if (file != null) await _handlePath(file.path);
+  }
+
+  Future<void> _openUrl() async {
+    final result = await showOpenUrlDialog(context);
+    if (result == null || !mounted) return;
+    setState(() => _hasVideo = true);
+    if (!result.hasSubtitles) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This video has no English subtitles.')),
+      );
+    }
   }
 
   void _showControls() {
@@ -139,7 +151,12 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
             children: [
               Positioned.fill(child: gateway.buildVideoSurface()),
               if (!_hasVideo)
-                Center(child: _EmptyState(onOpen: () => _pick(videoTypeGroup))),
+                Center(
+                  child: _EmptyState(
+                    onOpen: () => _pick(videoTypeGroup),
+                    onOpenUrl: _openUrl,
+                  ),
+                ),
               AnimatedPositioned(
                 duration: _animation,
                 curve: Curves.easeOut,
@@ -166,6 +183,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                         child: PlayerControls(
                           onOpenVideo: () => _pick(videoTypeGroup),
                           onLoadSubtitles: () => _pick(subtitleTypeGroup),
+                          onOpenUrl: _openUrl,
                         ),
                       ),
                     ),
@@ -181,9 +199,10 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.onOpen});
+  const _EmptyState({required this.onOpen, required this.onOpenUrl});
 
   final VoidCallback onOpen;
+  final VoidCallback onOpenUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -206,10 +225,22 @@ class _EmptyState extends StatelessWidget {
           style: TextStyle(color: Colors.white54),
         ),
         const SizedBox(height: 24),
-        FilledButton.icon(
-          onPressed: onOpen,
-          icon: const Icon(Icons.folder_open_rounded),
-          label: const Text('Open video'),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          alignment: WrapAlignment.center,
+          children: [
+            FilledButton.icon(
+              onPressed: onOpen,
+              icon: const Icon(Icons.folder_open_rounded),
+              label: const Text('Open video'),
+            ),
+            OutlinedButton.icon(
+              onPressed: onOpenUrl,
+              icon: const Icon(Icons.link_rounded),
+              label: const Text('Open YouTube link'),
+            ),
+          ],
         ),
       ],
     );

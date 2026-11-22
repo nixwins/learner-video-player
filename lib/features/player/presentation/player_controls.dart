@@ -20,10 +20,12 @@ class PlayerControls extends ConsumerWidget {
     super.key,
     required this.onOpenVideo,
     required this.onLoadSubtitles,
+    required this.onOpenUrl,
   });
 
   final VoidCallback onOpenVideo;
   final VoidCallback onLoadSubtitles;
+  final VoidCallback onOpenUrl;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -67,6 +69,11 @@ class PlayerControls extends ConsumerWidget {
                     tooltip: 'Open video',
                     icon: const Icon(Icons.folder_open_rounded),
                     onPressed: onOpenVideo,
+                  ),
+                  IconButton(
+                    tooltip: 'Open YouTube link',
+                    icon: const Icon(Icons.link_rounded),
+                    onPressed: onOpenUrl,
                   ),
                   const Spacer(),
                   IconButton.filled(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:learner_video_player/core/choice.dart';
@@ -5,6 +7,7 @@ import 'package:learner_video_player/features/player/domain/player_gateway.dart'
 import 'package:learner_video_player/features/settings/domain/settings_repository.dart';
 import 'package:learner_video_player/features/subtitles/domain/subtitle_cue.dart';
 import 'package:learner_video_player/features/translation/domain/translation_launcher.dart';
+import 'package:learner_video_player/features/youtube/domain/video_resolver.dart';
 
 class FakeTranslationLauncher implements TranslationLauncher {
   final opened = <Uri>[];
@@ -60,8 +63,11 @@ class FakePlayerGateway implements PlayerGateway {
   @override
   Future<void> togglePlay() async => togglePlayCalls++;
 
+  final opened = <(String, String?)>[];
+
   @override
-  Future<void> open(String path) async {}
+  Future<void> open(String path, {String? subtitlePath}) async =>
+      opened.add((path, subtitlePath));
 
   @override
   Future<void> seek(Duration position) async {}
@@ -119,4 +125,46 @@ class FakeSettings implements SettingsRepository {
   @override
   Future<void> saveTranslationPanelWidth(double width) async =>
       translationPanelWidth = width;
+}
+
+class FakeVideoResolver implements VideoResolver {
+  final requested = <String>[];
+  ResolvedVideo? result = const ResolvedVideo(
+    title: 'Me at the zoo',
+    videoPath: '/tmp/video.mp4',
+    subtitlePath: '/tmp/video.en.srt',
+  );
+  VideoResolveException? failure;
+
+  /// When set, resolve waits for it, so tests can look at the loading state.
+  Completer<void>? gate;
+
+  @override
+  Future<ResolvedVideo> resolve(
+    String url, {
+    void Function(ResolveProgress progress)? onProgress,
+    Cancellation? cancellation,
+  }) async {
+    requested.add(url);
+    onProgress?.call(
+      const ResolveProgress(
+        ResolveStage.downloading,
+        fraction: 0.5,
+        title: 'Me at the zoo',
+      ),
+    );
+    final gate = this.gate;
+    if (gate != null) {
+      await Future.any([gate.future, ?cancellation?.whenCancelled]);
+      if (cancellation?.isCancelled ?? false) {
+        throw const VideoResolveException(
+          VideoResolveError.cancelled,
+          'Cancelled.',
+        );
+      }
+    }
+    final failure = this.failure;
+    if (failure != null) throw failure;
+    return result!;
+  }
 }

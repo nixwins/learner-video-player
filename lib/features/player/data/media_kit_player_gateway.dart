@@ -29,10 +29,24 @@ class MediaKitPlayerGateway implements PlayerGateway {
 
   StreamSubscription<Duration>? _rangeEnd;
 
+  /// How long to wait for a freshly opened file before adding its subtitles.
+  static const _loadTimeout = Duration(seconds: 5);
+
   @override
-  Future<void> open(String path) {
+  Future<void> open(String path, {String? subtitlePath}) async {
     _cancelRange();
-    return _player.open(Media(path));
+    // mpv rejects "add subtitle" until a file is loaded; a new duration is the
+    // earliest signal that it is. Listen before opening so it is not missed.
+    final loaded = subtitlePath == null
+        ? null
+        : _player.stream.duration
+              .firstWhere((duration) => duration > Duration.zero)
+              .timeout(_loadTimeout, onTimeout: () => Duration.zero);
+    await _player.open(Media(path));
+    if (loaded != null) {
+      await loaded;
+      await addExternalSubtitle(subtitlePath!);
+    }
   }
 
   @override

@@ -4,7 +4,7 @@ A desktop video player for people who learn English by watching movies and serie
 
 **Click any word in the subtitles → the video pauses → a Google Translate panel slides in on the right, inside the same window, with that word translated into your language.**
 
-- Plays `mp4`, `mov` and `avi` files
+- Plays `mp4`, `mov` and `avi` files, and **YouTube links** (with English subtitles)
 - Pick the audio track and the subtitles
 - Load your own `.srt` subtitle file (or drag it onto the window)
 - Every subtitle word is clickable
@@ -35,6 +35,7 @@ Works on **macOS**. Windows is not supported yet: the embedded translation panel
 | **Flutter** | The framework the app is built with | Yes |
 | **Xcode** | Builds the native app | Yes |
 | **Git** | Downloads the project | Yes |
+| **yt-dlp** (optional) | Only needed to open YouTube links | Yes |
 
 You do **not** need to know how to program. You will copy and paste a few commands.
 
@@ -73,7 +74,15 @@ brew install git cocoapods
 brew install --cask flutter
 ```
 
-### Step 4. Check that everything is ready
+### Step 4. Install yt-dlp (only if you want to watch YouTube)
+
+```bash
+brew install yt-dlp ffmpeg
+```
+
+`yt-dlp` downloads the video; `ffmpeg` lets it pick better quality (up to 720p). Without `ffmpeg` it still works, but may pick a lower quality. YouTube changes often, so if downloads stop working, update it with `brew upgrade yt-dlp`.
+
+### Step 5. Check that everything is ready
 
 ```bash
 flutter doctor
@@ -157,6 +166,18 @@ By default macOS apps are "sandboxed" and may only read files you explicitly all
 
 Click the **music note** button in the control bar and pick a track (for example the original English one).
 
+### Watch a YouTube video
+
+1. Click the **link icon** in the control bar (or **Open YouTube link** on the start screen).
+2. Paste the link and press **Play**. If your clipboard already holds a YouTube link, it is filled in for you.
+3. The video is downloaded once (up to 720p) together with its **English subtitles**, then it plays like any other file. A second time it opens instantly.
+
+Clicking words, translating a sentence and **Play again** work exactly as with a local file. If the video has no English subtitles, you will be told, and you can load an `.srt` yourself.
+
+Only English subtitles are used. Hand-written subtitles are preferred; otherwise YouTube's automatic captions are used (the app removes the repeated lines these captions contain).
+
+Downloaded videos are kept in the system's temporary folder, so macOS cleans them up by itself.
+
 ### Subtitles
 
 Click the **CC** button in the control bar:
@@ -229,6 +250,15 @@ flutter run -d macos
 **The video does not play, or there is no sound**
 Make sure the file is a normal `mp4`, `mov` or `avi`. Try another file to check that it is not the file itself.
 
+**"yt-dlp is not installed"**
+Run `brew install yt-dlp`. If you just installed it, restart the app.
+
+**"YouTube refused the download (HTTP 403)"** or other YouTube errors
+yt-dlp is out of date. Run `brew upgrade yt-dlp` (or `pip install -U yt-dlp` if you installed it with pip) and try again.
+
+**"This video has no English subtitles"**
+Some videos have none. Load your own `.srt` with the **CC** button, or choose another video.
+
 **Subtitles do not appear**
 Open the **Subtitles** menu and choose a track, or choose **Load file…** and pick an `.srt`. Put the subtitle file next to the video with the same name (`movie.mp4` + `movie.srt`) if you want to find it easily.
 
@@ -265,6 +295,8 @@ lib/
     subtitles/     tokenizeSubtitle (domain); ClickableSubtitle (presentation)
     translation/   buildTranslateUri, TranslateWord, TranslationLauncher (domain);
                    WebviewTranslationLauncher (data); TranslationPanel (presentation)
+    youtube/       VideoResolver, youtubeVideoId, cleanAutoCaptions (domain);
+                   YtDlpVideoResolver (data); open-link dialog (presentation)
     settings/      SettingsRepository (domain) ← PrefsSettingsRepository (data); native language
   main.dart        composition root: the only place that wires concrete implementations
 ```
@@ -279,6 +311,7 @@ lib/
 | `shared_preferences` | Remembering the chosen language |
 | `file_selector` | Open-file dialogs |
 | `desktop_drop` | Drag and drop |
+| `yt-dlp` (external program) | Downloads YouTube videos and subtitles; used in one file, `ytdlp_video_resolver.dart` |
 
 Each third-party library is used in exactly one file (or one thin layer), so it can be replaced without touching the UI.
 

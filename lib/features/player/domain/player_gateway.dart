@@ -10,7 +10,9 @@ import 'package:learner_video_player/features/subtitles/domain/subtitle_cue.dart
 abstract interface class PlayerGateway {
   Widget buildVideoSurface();
 
-  Future<void> open(String path);
+  /// Opens [path]. When [subtitlePath] is given, it is loaded as the active
+  /// subtitle track once the video is ready.
+  Future<void> open(String path, {String? subtitlePath});
   Future<void> togglePlay();
   Future<void> pause();
   Future<void> seek(Duration position);
