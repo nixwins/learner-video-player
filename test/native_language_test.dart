@@ -1,21 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:learner_video_player/core/languages.dart';
-import 'package:learner_video_player/features/settings/domain/settings_repository.dart';
 import 'package:learner_video_player/features/settings/presentation/settings_providers.dart';
 
-class _FakeSettings implements SettingsRepository {
-  _FakeSettings([this.nativeLanguageCode]);
+import 'support/fakes.dart';
 
-  @override
-  String? nativeLanguageCode;
-
-  @override
-  Future<void> saveNativeLanguageCode(String code) async =>
-      nativeLanguageCode = code;
-}
-
-ProviderContainer _container(_FakeSettings settings) {
+ProviderContainer _container(FakeSettings settings) {
   final container = ProviderContainer(
     overrides: [settingsRepositoryProvider.overrideWithValue(settings)],
   );
@@ -25,12 +15,12 @@ ProviderContainer _container(_FakeSettings settings) {
 
 void main() {
   test('defaults to the first supported language', () {
-    final container = _container(_FakeSettings());
+    final container = _container(FakeSettings());
     expect(container.read(nativeLanguageProvider), supportedLanguages.first);
   });
 
   test('restores a saved language', () {
-    final container = _container(_FakeSettings('ru'));
+    final container = _container(FakeSettings('ru'));
     expect(container.read(nativeLanguageProvider).code, 'ru');
   });
 
@@ -39,7 +29,7 @@ void main() {
   });
 
   test('select updates state and persists', () async {
-    final settings = _FakeSettings();
+    final settings = FakeSettings();
     final container = _container(settings);
     await container.read(nativeLanguageProvider.notifier).select('tr');
     expect(container.read(nativeLanguageProvider).code, 'tr');

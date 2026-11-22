@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:learner_video_player/core/choice.dart';
+import 'package:learner_video_player/features/subtitles/domain/subtitle_cue.dart';
 
 /// What the app needs from a video engine. The only implementation lives in
 /// the data layer, so the engine can be swapped without touching the UI.
@@ -13,6 +14,12 @@ abstract interface class PlayerGateway {
   Future<void> togglePlay();
   Future<void> pause();
   Future<void> seek(Duration position);
+
+  /// Plays from [start] and pauses by itself when [end] is reached.
+  Future<void> playRange(Duration start, Duration end);
+
+  /// The subtitle sentence on screen right now, or null if there is none.
+  Future<SubtitleCue?> currentSubtitleCue();
 
   Future<void> selectAudio(String id);
 

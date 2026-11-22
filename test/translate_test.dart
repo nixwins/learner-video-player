@@ -1,14 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:learner_video_player/features/translation/domain/translate_url_builder.dart';
-import 'package:learner_video_player/features/translation/domain/translate_word.dart';
-import 'package:learner_video_player/features/translation/domain/translation_launcher.dart';
-
-class _FakeLauncher implements TranslationLauncher {
-  final opened = <Uri>[];
-
-  @override
-  Future<void> open(Uri uri) async => opened.add(uri);
-}
+import 'package:learner_video_player/features/translation/domain/translate_text.dart';
+import 'support/fakes.dart';
 
 void main() {
   test('builds the Google Translate URL', () {
@@ -35,17 +28,29 @@ void main() {
     expect(uri.queryParameters['text'], 'a&b c');
   });
 
-  test('TranslateWord opens en -> target and trims the word', () async {
-    final launcher = _FakeLauncher();
-    await TranslateWord(launcher)(' actually ', targetLanguageCode: 'kk');
+  test('TranslateText opens en -> target and trims the text', () async {
+    final launcher = FakeTranslationLauncher();
+    await TranslateText(launcher)(' actually ', targetLanguageCode: 'kk');
     expect(launcher.opened.single.queryParameters['sl'], 'en');
     expect(launcher.opened.single.queryParameters['tl'], 'kk');
     expect(launcher.opened.single.queryParameters['text'], 'actually');
   });
 
-  test('TranslateWord ignores blank input', () async {
-    final launcher = _FakeLauncher();
-    await TranslateWord(launcher)('  ', targetLanguageCode: 'kk');
+  test('TranslateText translates a whole sentence in one request', () async {
+    final launcher = FakeTranslationLauncher();
+    await TranslateText(launcher)(
+      'I know the government.',
+      targetLanguageCode: 'ru',
+    );
+    expect(
+      launcher.opened.single.queryParameters['text'],
+      'I know the government.',
+    );
+  });
+
+  test('TranslateText ignores blank input', () async {
+    final launcher = FakeTranslationLauncher();
+    await TranslateText(launcher)('  ', targetLanguageCode: 'kk');
     expect(launcher.opened, isEmpty);
   });
 }

@@ -2,7 +2,7 @@
 
 A desktop video player for people who learn English by watching movies and series.
 
-**Click any word in the subtitles → the video pauses → Google Translate opens with that word translated into your language.**
+**Click any word in the subtitles → the video pauses → a Google Translate panel slides in on the right, inside the same window, with that word translated into your language.**
 
 - Plays `mp4`, `mov` and `avi` files
 - Pick the audio track and the subtitles
@@ -10,7 +10,7 @@ A desktop video player for people who learn English by watching movies and serie
 - Every subtitle word is clickable
 - Translates from English into the language you choose (Kazakh by default, your choice is remembered)
 
-Works on **macOS** (tested) and **Windows** (not tested yet).
+Works on **macOS**. Windows is not supported yet: the embedded translation panel uses a web view that currently exists only for macOS.
 
 ---
 
@@ -18,11 +18,10 @@ Works on **macOS** (tested) and **Windows** (not tested yet).
 
 1. [What you need](#1-what-you-need)
 2. [Install on macOS, step by step](#2-install-on-macos-step-by-step)
-3. [Install on Windows](#3-install-on-windows)
-4. [Download and start the app](#4-download-and-start-the-app)
-5. [How to use it](#5-how-to-use-it)
-6. [Troubleshooting](#6-troubleshooting)
-7. [For developers](#7-for-developers)
+3. [Download and start the app](#3-download-and-start-the-app)
+4. [How to use it](#4-how-to-use-it)
+5. [Troubleshooting](#5-troubleshooting)
+6. [For developers](#6-for-developers)
 
 ---
 
@@ -30,11 +29,11 @@ Works on **macOS** (tested) and **Windows** (not tested yet).
 
 | Thing | Why | Free? |
 | --- | --- | --- |
-| A Mac (macOS 10.15 or newer) or a Windows 10/11 PC | To run the app | – |
+| A Mac (macOS 10.15 or newer) | To run the app | – |
 | Internet connection | To download tools once, and for Google Translate while watching | – |
 | About 10 GB of free disk space | Xcode and Flutter are big | – |
 | **Flutter** | The framework the app is built with | Yes |
-| **Xcode** (Mac) or **Visual Studio** (Windows) | Builds the native app | Yes |
+| **Xcode** | Builds the native app | Yes |
 | **Git** | Downloads the project | Yes |
 
 You do **not** need to know how to program. You will copy and paste a few commands.
@@ -87,20 +86,7 @@ If something under macOS is red, see [Troubleshooting](#6-troubleshooting).
 
 ---
 
-## 3. Install on Windows
-
-> Windows has not been tested yet. If something does not work, please open an issue.
-
-1. **Turn on Developer Mode:** open *Settings → System → For developers* (or *Privacy & security → For developers*) and switch **Developer Mode** on. Flutter needs it.
-2. **Install Git:** download it from <https://git-scm.com/download/win> and install with the default options.
-3. **Install Visual Studio 2022** (the Community edition is free) from <https://visualstudio.microsoft.com/downloads/>. In the installer tick **Desktop development with C++**.
-4. **Install the Microsoft Edge WebView2 Runtime** from <https://developer.microsoft.com/microsoft-edge/webview2/> (it is already included in Windows 11 and in most up-to-date Windows 10 installs). The translation window needs it.
-5. **Install Flutter:** follow <https://docs.flutter.dev/install/manual>, then add Flutter's `bin` folder to your `PATH`.
-6. Open **PowerShell** and run `flutter doctor`. **Flutter** and **Visual Studio - develop Windows apps** must be green.
-
----
-
-## 4. Download and start the app
+## 3. Download and start the app
 
 ### Step 1. Download the project
 
@@ -110,9 +96,7 @@ git clone https://github.com/nixwins/learner-video-player.git
 cd learner-video-player
 ```
 
-(On Windows use `cd %USERPROFILE%` instead of `cd ~`.)
-
-### Step 2. Install the project's packages and run the checks (macOS)
+### Step 2. Install the project's packages and run the checks
 
 ```bash
 chmod +x setup.sh
@@ -123,24 +107,10 @@ This downloads the libraries the app uses, switches off a macOS setting that wou
 
 The first run takes a few minutes. You only need to do this step once.
 
-On Windows run this instead:
-
-```powershell
-flutter pub get
-```
-
 ### Step 3. Start the app
-
-macOS:
 
 ```bash
 flutter run -d macos
-```
-
-Windows:
-
-```powershell
-flutter run -d windows
 ```
 
 The first start takes a few minutes because the app is being built. Next starts are much faster. A window called **learner_video_player** will open.
@@ -171,7 +141,7 @@ By default macOS apps are "sandboxed" and may only read files you explicitly all
 
 ---
 
-## 5. How to use it
+## 4. How to use it
 
 ### Open a video
 
@@ -180,15 +150,16 @@ By default macOS apps are "sandboxed" and may only read files you explicitly all
 
 ### Pause and play
 
-- Click the **play / pause button**, or press **Space**.
+- Click the **play / pause button**, press **Space**, or click the video.
+- The control bar hides itself while the video plays. Move the mouse to show it again.
 
 ### Choose the audio track
 
-Click the **audio** button in the bottom bar and pick a track (for example the original English one).
+Click the **music note** button in the control bar and pick a track (for example the original English one).
 
 ### Subtitles
 
-Click the **Subtitles** button in the bottom bar:
+Click the **CC** button in the control bar:
 
 - Pick one of the subtitle tracks that are inside the video file, or
 - choose **Off** to hide them, or
@@ -198,18 +169,21 @@ Click the **Subtitles** button in the bottom bar:
 
 1. Make sure subtitles are on.
 2. **Click any word** in the subtitle.
-3. The video pauses and a **Translate** window opens with the word (English → your language).
-4. Close the window, click the video area, and press **Space** to continue.
+3. The video pauses and a **translation panel opens on the right**, in the same window (English → your language). The video shrinks to make room, and the word stays highlighted in the subtitle.
+4. Drag the thin divider between the video and the panel to change the panel width. The app remembers it.
+5. Click a different word to translate it, or close the panel with the **×** button or the **Esc** key.
+6. Press **Space** (or click the video) to continue watching.
 
 ### Change the language you translate into
 
-Click the **Translate into** button in the bottom bar and pick a language. The app remembers it next time.
+Click the **translate** button (the one with the two letters) in the control bar and pick a language. The app remembers it next time.
 
 ### Keyboard shortcuts
 
 | Key | Action |
 | --- | --- |
 | `Space` | Play / pause |
+| `Esc` | Close the translation panel |
 
 ### Not supported yet
 
@@ -218,7 +192,7 @@ Click the **Translate into** button in the bottom bar and pick a language. The a
 
 ---
 
-## 6. Troubleshooting
+## 5. Troubleshooting
 
 **`zsh: command not found: flutter`**
 Flutter is not on your PATH. Close the Terminal and open a new one. If it still fails, run `brew install --cask flutter` again and read what Homebrew prints at the end.
@@ -258,8 +232,8 @@ Make sure the file is a normal `mp4`, `mov` or `avi`. Try another file to check 
 **Subtitles do not appear**
 Open the **Subtitles** menu and choose a track, or choose **Load file…** and pick an `.srt`. Put the subtitle file next to the video with the same name (`movie.mp4` + `movie.srt`) if you want to find it easily.
 
-**The Translate window is empty or shows an error**
-It needs an internet connection. On Windows also check that the WebView2 Runtime is installed.
+**The translation panel shows "Could not load the translation"**
+It needs an internet connection. Check it and press **Retry**.
 
 **Clicking a word does nothing**
 Subtitles in the video may be picture-based. Switch to another subtitle track or load an `.srt` file.
@@ -269,7 +243,7 @@ Run the app with `flutter run -d macos` and look at the messages in the Terminal
 
 ---
 
-## 7. For developers
+## 6. For developers
 
 ### Commands
 
@@ -290,7 +264,7 @@ lib/
     player/        PlayerGateway (domain) ← MediaKitPlayerGateway (data); page, controls, menus
     subtitles/     tokenizeSubtitle (domain); ClickableSubtitle (presentation)
     translation/   buildTranslateUri, TranslateWord, TranslationLauncher (domain);
-                   WebviewTranslationLauncher (data)
+                   WebviewTranslationLauncher (data); TranslationPanel (presentation)
     settings/      SettingsRepository (domain) ← PrefsSettingsRepository (data); native language
   main.dart        composition root: the only place that wires concrete implementations
 ```
@@ -300,7 +274,7 @@ lib/
 | Library | Used for |
 | --- | --- |
 | `media_kit` (libmpv) | Playback, audio tracks, subtitle tracks and the text of the current subtitle |
-| `desktop_webview_window` | The translation window |
+| `webview_flutter` | The translation panel (embedded web view) |
 | `flutter_riverpod` | State management and dependency injection |
 | `shared_preferences` | Remembering the chosen language |
 | `file_selector` | Open-file dialogs |
@@ -313,3 +287,4 @@ Each third-party library is used in exactly one file (or one thin layer), so it 
 - Picture-based subtitles (PGS / VobSub) cannot be clicked (no OCR).
 - Whether a `.srt` next to the video is picked up automatically depends on mpv; if it is not, load it manually.
 - No volume slider and no full screen yet.
+- macOS only: `webview_flutter` has no Windows implementation.

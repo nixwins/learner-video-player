@@ -13,7 +13,7 @@ class AudioTrackMenu extends ConsumerWidget {
     final tracks = ref.watch(audioTracksProvider).value ?? const [];
     if (tracks.length < 2) return const SizedBox.shrink();
     return OptionMenuButton(
-      icon: Icons.audiotrack,
+      icon: Icons.music_note_rounded,
       tooltip: 'Audio track',
       options: tracks,
       selectedId: ref.watch(selectedAudioIdProvider).value,
@@ -35,7 +35,7 @@ class SubtitleMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tracks = ref.watch(subtitleTracksProvider).value ?? const [];
     return OptionMenuButton(
-      icon: Icons.subtitles,
+      icon: Icons.closed_caption_rounded,
       tooltip: 'Subtitles',
       options: [
         const Choice(id: _offId, label: 'Off'),

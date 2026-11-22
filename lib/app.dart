@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:learner_video_player/core/theme.dart';
 import 'package:learner_video_player/features/player/presentation/player_page.dart';
 
 class LearnerVideoPlayerApp extends StatelessWidget {
@@ -9,11 +10,7 @@ class LearnerVideoPlayerApp extends StatelessWidget {
     return MaterialApp(
       title: 'Learner Video Player',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        colorSchemeSeed: Colors.indigo,
-        useMaterial3: true,
-      ),
+      theme: buildAppTheme(),
       home: const PlayerPage(),
     );
   }

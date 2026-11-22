@@ -1,35 +1,61 @@
-import 'package:desktop_webview_window/desktop_webview_window.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:learner_video_player/features/translation/domain/translation_launcher.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
-/// Opens translations in a separate native webview window
-/// (WKWebView on macOS, WebView2 on Windows) and reuses it between lookups.
+/// Renders translations in an embedded web view (WKWebView on macOS) and
+/// reuses one controller for every lookup.
 class WebviewTranslationLauncher implements TranslationLauncher {
-  Webview? _window;
+  WebviewTranslationLauncher() {
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (_) => _loadState.value = TranslationLoadState.loading,
+          onPageFinished: (_) {
+            if (_loadState.value != TranslationLoadState.failed) {
+              _loadState.value = TranslationLoadState.ready;
+            }
+          },
+          onWebResourceError: (error) {
+            if (error.isForMainFrame ?? true) {
+              _loadState.value = TranslationLoadState.failed;
+            }
+          },
+        ),
+      );
+  }
+
+  late final WebViewController _controller;
+  final _current = ValueNotifier<Uri?>(null);
+  final _loadState = ValueNotifier(TranslationLoadState.loading);
 
   @override
-  Future<void> open(Uri uri) async {
-    final existing = _window;
-    if (existing != null) {
-      existing.launch(uri.toString());
-      return;
-    }
+  ValueListenable<Uri?> get current => _current;
 
-    if (!await WebviewWindow.isWebviewAvailable()) {
-      throw StateError(
-        'No webview runtime found. On Windows install the Microsoft Edge '
-        'WebView2 Runtime.',
-      );
-    }
+  @override
+  ValueListenable<TranslationLoadState> get loadState => _loadState;
 
-    final window = await WebviewWindow.create(
-      configuration: const CreateConfiguration(
-        windowWidth: 520,
-        windowHeight: 700,
-        title: 'Translate',
-      ),
-    );
-    _window = window;
-    window.onClose.whenComplete(() => _window = null);
-    window.launch(uri.toString());
+  @override
+  Future<void> open(Uri uri) {
+    _current.value = uri;
+    return _load(uri);
   }
+
+  @override
+  Future<void> reload() async {
+    final uri = _current.value;
+    if (uri != null) await _load(uri);
+  }
+
+  Future<void> _load(Uri uri) {
+    _loadState.value = TranslationLoadState.loading;
+    return _controller.loadRequest(uri);
+  }
+
+  @override
+  void close() => _current.value = null;
+
+  @override
+  Widget buildView() => WebViewWidget(controller: _controller);
 }

@@ -1,10 +1,20 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:learner_video_player/core/duration_format.dart';
+import 'package:learner_video_player/core/theme.dart';
 import 'package:learner_video_player/features/player/presentation/player_providers.dart';
 import 'package:learner_video_player/features/player/presentation/track_menus.dart';
 import 'package:learner_video_player/features/settings/presentation/native_language_menu.dart';
 
+const _timeStyle = TextStyle(
+  fontSize: 12,
+  color: Colors.white70,
+  fontFeatures: [FontFeature.tabularFigures()],
+);
+
+/// Floating "glass" control bar shown over the video.
 class PlayerControls extends ConsumerWidget {
   const PlayerControls({
     super.key,
@@ -23,45 +33,63 @@ class PlayerControls extends ConsumerWidget {
     final playing = ref.watch(playingProvider).value ?? false;
     final maxMs = duration.inMilliseconds > 0 ? duration.inMilliseconds : 1;
 
-    return Container(
-      color: Colors.black54,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          decoration: BoxDecoration(
+            color: AppColors.surface.withValues(alpha: 0.72),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.outline),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(formatDuration(position)),
-              Expanded(
-                child: Slider(
-                  value: position.inMilliseconds.clamp(0, maxMs).toDouble(),
-                  max: maxMs.toDouble(),
-                  onChanged: (ms) =>
-                      gateway.seek(Duration(milliseconds: ms.round())),
-                ),
+              Row(
+                children: [
+                  Text(formatDuration(position), style: _timeStyle),
+                  Expanded(
+                    child: Slider(
+                      value: position.inMilliseconds.clamp(0, maxMs).toDouble(),
+                      max: maxMs.toDouble(),
+                      onChanged: (ms) =>
+                          gateway.seek(Duration(milliseconds: ms.round())),
+                    ),
+                  ),
+                  Text(formatDuration(duration), style: _timeStyle),
+                ],
               ),
-              Text(formatDuration(duration)),
+              Row(
+                children: [
+                  IconButton(
+                    tooltip: 'Open video',
+                    icon: const Icon(Icons.folder_open_rounded),
+                    onPressed: onOpenVideo,
+                  ),
+                  const Spacer(),
+                  IconButton.filled(
+                    tooltip: playing ? 'Pause (Space)' : 'Play (Space)',
+                    iconSize: 28,
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                      foregroundColor: Colors.white,
+                    ),
+                    icon: Icon(
+                      playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                    ),
+                    onPressed: gateway.togglePlay,
+                  ),
+                  const Spacer(),
+                  const AudioTrackMenu(),
+                  SubtitleMenu(onLoadFile: onLoadSubtitles),
+                  const NativeLanguageMenu(),
+                ],
+              ),
             ],
           ),
-          Row(
-            children: [
-              IconButton(
-                tooltip: 'Open video',
-                icon: const Icon(Icons.folder_open),
-                onPressed: onOpenVideo,
-              ),
-              IconButton(
-                tooltip: playing ? 'Pause' : 'Play',
-                icon: Icon(playing ? Icons.pause : Icons.play_arrow),
-                onPressed: gateway.togglePlay,
-              ),
-              const Spacer(),
-              const AudioTrackMenu(),
-              SubtitleMenu(onLoadFile: onLoadSubtitles),
-              const NativeLanguageMenu(),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }

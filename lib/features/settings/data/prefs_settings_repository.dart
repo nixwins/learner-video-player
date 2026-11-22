@@ -6,6 +6,8 @@ class PrefsSettingsRepository implements SettingsRepository {
 
   static const _nativeLanguageKey = 'native_language_code';
 
+  static const _panelWidthKey = 'translation_panel_width';
+
   final SharedPreferences _prefs;
 
   @override
@@ -14,4 +16,11 @@ class PrefsSettingsRepository implements SettingsRepository {
   @override
   Future<void> saveNativeLanguageCode(String code) =>
       _prefs.setString(_nativeLanguageKey, code);
+
+  @override
+  double? get translationPanelWidth => _prefs.getDouble(_panelWidthKey);
+
+  @override
+  Future<void> saveTranslationPanelWidth(double width) =>
+      _prefs.setDouble(_panelWidthKey, width);
 }

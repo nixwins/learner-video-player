@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:learner_video_player/features/subtitles/domain/subtitle_tokenizer.dart';
+import 'package:learner_video_player/features/subtitles/presentation/clickable_words.dart';
 
 const _subtitleStyle = TextStyle(
   fontSize: 26,
-  height: 1.3,
-  fontWeight: FontWeight.w500,
+  height: 1.35,
+  fontWeight: FontWeight.w600,
   color: Colors.white,
+  shadows: [Shadow(blurRadius: 6, color: Colors.black)],
 );
 
 /// Renders subtitle [text] where every word is tappable.
+/// The word equal to [highlightedWord] (ignoring case) stays highlighted.
 class ClickableSubtitle extends StatelessWidget {
   const ClickableSubtitle({
     super.key,
     required this.text,
     required this.onWordTap,
+    this.highlightedWord,
   });
 
   final String text;
   final ValueChanged<String> onWordTap;
+  final String? highlightedWord;
 
   @override
   Widget build(BuildContext context) {
@@ -27,58 +31,20 @@ class ClickableSubtitle extends StatelessWidget {
       children: [
         for (final line in lines)
           Container(
-            margin: const EdgeInsets.symmetric(vertical: 1),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            margin: const EdgeInsets.symmetric(vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(4),
+              color: Colors.black.withValues(alpha: 0.55),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                for (final token in tokenizeSubtitle(line))
-                  token.isWord
-                      ? _Word(token.text, onTap: () => onWordTap(token.text))
-                      : Text(token.text, style: _subtitleStyle),
-              ],
+            child: ClickableWords(
+              text: line,
+              style: _subtitleStyle,
+              highlightedWord: highlightedWord,
+              onWordTap: onWordTap,
             ),
           ),
       ],
-    );
-  }
-}
-
-class _Word extends StatefulWidget {
-  const _Word(this.word, {required this.onTap});
-
-  final String word;
-  final VoidCallback onTap;
-
-  @override
-  State<_Word> createState() => _WordState();
-}
-
-class _WordState extends State<_Word> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: Text(
-          widget.word,
-          style: _subtitleStyle.copyWith(
-            color: _hovered ? Colors.amberAccent : Colors.white,
-            decoration: _hovered ? TextDecoration.underline : null,
-            decorationColor: Colors.amberAccent,
-          ),
-        ),
-      ),
     );
   }
 }

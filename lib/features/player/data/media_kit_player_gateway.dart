@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:learner_video_player/core/choice.dart';
 import 'package:learner_video_player/features/player/domain/player_gateway.dart';
+import 'package:learner_video_player/features/subtitles/domain/subtitle_cue.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
@@ -20,17 +23,78 @@ class MediaKitPlayerGateway implements PlayerGateway {
     subtitleViewConfiguration: const SubtitleViewConfiguration(visible: false),
   );
 
-  @override
-  Future<void> open(String path) => _player.open(Media(path));
+  /// How early before a cue's end the player is paused, to compensate for the
+  /// coarse position updates.
+  static const _endMargin = Duration(milliseconds: 100);
+
+  StreamSubscription<Duration>? _rangeEnd;
 
   @override
-  Future<void> togglePlay() => _player.playOrPause();
+  Future<void> open(String path) {
+    _cancelRange();
+    return _player.open(Media(path));
+  }
 
   @override
-  Future<void> pause() => _player.pause();
+  Future<void> togglePlay() {
+    _cancelRange();
+    return _player.playOrPause();
+  }
 
   @override
-  Future<void> seek(Duration position) => _player.seek(position);
+  Future<void> pause() {
+    _cancelRange();
+    return _player.pause();
+  }
+
+  @override
+  Future<void> seek(Duration position) {
+    _cancelRange();
+    return _player.seek(position);
+  }
+
+  @override
+  Future<void> playRange(Duration start, Duration end) async {
+    _cancelRange();
+    await _player.seek(start);
+    await _player.play();
+    _rangeEnd = _player.stream.position.listen((position) {
+      if (position >= end - _endMargin) {
+        _cancelRange();
+        _player.pause();
+      }
+    });
+  }
+
+  void _cancelRange() {
+    _rangeEnd?.cancel();
+    _rangeEnd = null;
+  }
+
+  @override
+  Future<SubtitleCue?> currentSubtitleCue() async {
+    final raw = _player.state.subtitle.join('\n');
+    final cue = SubtitleCue.fromRaw(
+      raw,
+      start: await _readSeconds('sub-start'),
+      end: await _readSeconds('sub-end'),
+    );
+    return cue.text.isEmpty ? null : cue;
+  }
+
+  /// Reads an mpv time property (seconds). It is empty when there is no
+  /// subtitle, and unavailable for image-based or unsupported engines.
+  Future<Duration?> _readSeconds(String property) async {
+    try {
+      final platform = _player.platform as dynamic;
+      final value = await platform.getProperty(property) as String;
+      final seconds = double.tryParse(value);
+      if (seconds == null) return null;
+      return Duration(microseconds: (seconds * 1e6).round());
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   Future<void> selectAudio(String id) => _player.setAudioTrack(
@@ -93,7 +157,10 @@ class MediaKitPlayerGateway implements PlayerGateway {
   ).map((lines) => lines.join('\n'));
 
   @override
-  Future<void> dispose() => _player.dispose();
+  Future<void> dispose() {
+    _cancelRange();
+    return _player.dispose();
+  }
 
   /// media_kit streams only emit changes; start with the current value so
   /// listeners get data immediately.

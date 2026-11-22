@@ -16,7 +16,7 @@ class NativeLanguageMenu extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return OptionMenuButton(
-      icon: Icons.translate,
+      icon: Icons.translate_rounded,
       tooltip: 'Translate into',
       options: _languageChoices,
       selectedId: ref.watch(nativeLanguageProvider).code,
