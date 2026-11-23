@@ -12,6 +12,7 @@ import 'package:learner_video_player/features/player/domain/player_gateway.dart'
 import 'package:learner_video_player/features/player/presentation/player_controls.dart';
 import 'package:learner_video_player/features/player/presentation/player_providers.dart';
 import 'package:learner_video_player/features/player/presentation/subtitle_overlay.dart';
+import 'package:learner_video_player/features/settings/presentation/settings_dialog.dart';
 import 'package:learner_video_player/features/translation/presentation/translation_panel.dart';
 import 'package:learner_video_player/features/translation/presentation/translation_providers.dart';
 import 'package:learner_video_player/features/youtube/presentation/open_url_dialog.dart';
@@ -98,6 +99,20 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
         bindings: {
           const SingleActivator(LogicalKeyboardKey.space): gateway.togglePlay,
           const SingleActivator(LogicalKeyboardKey.escape): launcher.close,
+          const SingleActivator(LogicalKeyboardKey.arrowLeft): () =>
+              gateway.seekBy(seekStep * -1),
+          const SingleActivator(LogicalKeyboardKey.arrowRight): () =>
+              gateway.seekBy(seekStep),
+          const SingleActivator(
+            LogicalKeyboardKey.arrowLeft,
+            shift: true,
+          ): () =>
+              gateway.seekToSentence(next: false),
+          const SingleActivator(
+            LogicalKeyboardKey.arrowRight,
+            shift: true,
+          ): () =>
+              gateway.seekToSentence(next: true),
         },
         child: Focus(
           focusNode: _focusNode,
@@ -184,6 +199,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                           onOpenVideo: () => _pick(videoTypeGroup),
                           onLoadSubtitles: () => _pick(subtitleTypeGroup),
                           onOpenUrl: _openUrl,
+                          onOpenSettings: () => showSettingsDialog(context),
                         ),
                       ),
                     ),

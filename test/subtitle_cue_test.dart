@@ -52,4 +52,17 @@ void main() {
     );
     expect(cue.replayFrom, Duration.zero);
   });
+
+  test(
+    'a saved clip starts like play again and ends a little after the cue',
+    () {
+      const cue = SubtitleCue(
+        text: 'a',
+        start: Duration(seconds: 10),
+        end: Duration(seconds: 13),
+      );
+      expect(cue.clipFrom, const Duration(milliseconds: 9750));
+      expect(cue.clipTo, const Duration(milliseconds: 13300));
+    },
+  );
 }

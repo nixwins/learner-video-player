@@ -36,6 +36,7 @@ Works on **macOS**. Windows is not supported yet: the embedded translation panel
 | **Xcode** | Builds the native app | Yes |
 | **Git** | Downloads the project | Yes |
 | **yt-dlp** (optional) | Only needed to open YouTube links | Yes |
+| **ffmpeg** (optional) | Only needed to save sentences with a video fragment | Yes |
 
 You do **not** need to know how to program. You will copy and paste a few commands.
 
@@ -74,13 +75,16 @@ brew install git cocoapods
 brew install --cask flutter
 ```
 
-### Step 4. Install yt-dlp (only if you want to watch YouTube)
+### Step 4. Install yt-dlp and ffmpeg (optional)
 
 ```bash
 brew install yt-dlp ffmpeg
 ```
 
-`yt-dlp` downloads the video; `ffmpeg` lets it pick better quality (up to 720p). Without `ffmpeg` it still works, but may pick a lower quality. YouTube changes often, so if downloads stop working, update it with `brew upgrade yt-dlp`.
+- **`yt-dlp`** is needed to open YouTube links. YouTube changes often, so if downloads stop working, update it with `brew upgrade yt-dlp`.
+- **`ffmpeg`** is needed to **save sentences with their video fragment** (see [Save a sentence](#save-a-sentence-to-freqapp)). It also lets YouTube downloads use better quality (up to 720p).
+
+You can skip this step and install them later.
 
 ### Step 5. Check that everything is ready
 
@@ -178,6 +182,33 @@ Only English subtitles are used. Hand-written subtitles are preferred; otherwise
 
 Downloaded videos are kept in the system's temporary folder, so macOS cleans them up by itself.
 
+### Save a sentence to FreqApp
+
+You can send the sentence you are looking at, **together with just its video fragment**, to your FreqApp server.
+
+**One-time setup**
+
+1. Click the **gear icon** in the control bar to open **Settings**.
+2. Fill in the **FreqApp** section:
+   - **Server address**, for example `https://freqapp.example.com` (ask whoever runs the server).
+   - **API key**, which starts with `tvs_`. An admin creates it in FreqApp under **Settings → API keys** and it is shown **only once**, so copy it right away.
+3. Press **Save**.
+
+Click the eye icon in the key field to check what you typed. **To replace the key** later, open Settings, type the new key over the old one and press **Save**. The new key is used immediately. The key is stored on this computer only and is only ever sent to the server address you entered.
+
+**Saving a sentence**
+
+1. Click a word in the subtitles so the panel opens.
+2. Press **Save** under the sentence.
+3. The app cuts the fragment of that sentence out of the video as an `.mp4` (with `ffmpeg`), uploads it together with the sentence text and the video's title, and shows **Saved**.
+
+Good to know:
+- If you have not set up the server and key yet, **Save** opens Settings first and then saves.
+- Each sentence can be saved only once from the app, so you do not create duplicates by accident. If the connection drops while saving, the message says the sentence **may** already be saved: check on the server before saving it again.
+- The fragment starts a little before the sentence and ends a little after it, and uses the audio track you picked.
+- If the exact timing of the sentence is unknown (for example picture-based subtitles), the sentence is saved without a video, and you are told so.
+- The server accepts videos up to 100 MB and 30 saves per minute. A short fragment is far below the size limit.
+
 ### Subtitles
 
 Click the **CC** button in the control bar:
@@ -204,6 +235,8 @@ Click the **translate** button (the one with the two letters) in the control bar
 | Key | Action |
 | --- | --- |
 | `Space` | Play / pause |
+| `←` / `→` | Back / forward 10 seconds |
+| `Shift` + `←` / `→` | Previous / next subtitle sentence |
 | `Esc` | Close the translation panel |
 
 ### Not supported yet
@@ -259,6 +292,15 @@ yt-dlp is out of date. Run `brew upgrade yt-dlp` (or `pip install -U yt-dlp` if 
 **"This video has no English subtitles"**
 Some videos have none. Load your own `.srt` with the **CC** button, or choose another video.
 
+**"ffmpeg is not installed" when saving a sentence**
+Run `brew install ffmpeg`, then press **Save** again.
+
+**"The API key is wrong or was revoked"**
+Open **Settings** (gear icon), enter a valid key and press **Save**. Ask the FreqApp admin for a new key if needed.
+
+**"Cannot connect to …" when saving a sentence**
+Check the **Server address** in Settings and your internet connection.
+
 **Subtitles do not appear**
 Open the **Subtitles** menu and choose a track, or choose **Load file…** and pick an `.srt`. Put the subtitle file next to the video with the same name (`movie.mp4` + `movie.srt`) if you want to find it easily.
 
@@ -297,6 +339,8 @@ lib/
                    WebviewTranslationLauncher (data); TranslationPanel (presentation)
     youtube/       VideoResolver, youtubeVideoId, cleanAutoCaptions (domain);
                    YtDlpVideoResolver (data); open-link dialog (presentation)
+    sentences/     SaveSentence, SentenceRepository, ClipCutter (domain);
+                   FreqAppApi, FfmpegClipCutter (data); Save button (presentation)
     settings/      SettingsRepository (domain) ← PrefsSettingsRepository (data); native language
   main.dart        composition root: the only place that wires concrete implementations
 ```
@@ -311,6 +355,8 @@ lib/
 | `shared_preferences` | Remembering the chosen language |
 | `file_selector` | Open-file dialogs |
 | `desktop_drop` | Drag and drop |
+| `http` | Sending sentences to the FreqApp API (one file, `freqapp_api.dart`) |
+| `ffmpeg` (external program) | Cuts the video fragment of a sentence; used in one file, `ffmpeg_clip_cutter.dart` |
 | `yt-dlp` (external program) | Downloads YouTube videos and subtitles; used in one file, `ytdlp_video_resolver.dart` |
 
 Each third-party library is used in exactly one file (or one thin layer), so it can be replaced without touching the UI.

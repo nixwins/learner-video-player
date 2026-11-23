@@ -21,3 +21,11 @@ MediaKind classifyMedia(String path) {
   if (subtitleExtensions.contains(extension)) return MediaKind.subtitle;
   return MediaKind.unsupported;
 }
+
+/// The file name of [path] without folders and extension: `/a/Friends S01.mp4`
+/// becomes `Friends S01`. Works with both `/` and `\` separators.
+String titleFromPath(String path) {
+  final name = path.split(RegExp(r'[/\\]')).last;
+  final dot = name.lastIndexOf('.');
+  return dot > 0 ? name.substring(0, dot) : name;
+}

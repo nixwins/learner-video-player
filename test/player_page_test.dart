@@ -188,4 +188,44 @@ void main() {
       expect(find.text('Translate sentence'), findsNothing);
     });
   });
+
+  testWidgets('the 10 second buttons rewind and fast-forward', (tester) async {
+    final harness = await _pump(tester);
+
+    await tester.tap(find.byTooltip('Back 10 s (←)'));
+    await tester.tap(find.byTooltip('Forward 10 s (→)'));
+
+    expect(harness.gateway.seekDeltas, [
+      const Duration(seconds: -10),
+      const Duration(seconds: 10),
+    ]);
+  });
+
+  testWidgets('the sentence buttons jump to the previous and next sentence', (
+    tester,
+  ) async {
+    final harness = await _pump(tester);
+
+    await tester.tap(find.byTooltip('Previous sentence (Shift+←)'));
+    await tester.tap(find.byTooltip('Next sentence (Shift+→)'));
+
+    expect(harness.gateway.sentenceSeeks, [false, true]);
+  });
+
+  testWidgets('arrow keys seek, Shift+arrows change sentence', (tester) async {
+    final harness = await _pump(tester);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+
+    expect(harness.gateway.seekDeltas, [
+      const Duration(seconds: -10),
+      const Duration(seconds: 10),
+    ]);
+    expect(harness.gateway.sentenceSeeks, [true, false]);
+  });
 }

@@ -1,5 +1,8 @@
 import 'package:learner_video_player/features/subtitles/domain/subtitle_tokenizer.dart';
 
+/// Saved clips run a little past the cue so the last word is not cut off.
+const _clipTail = Duration(milliseconds: 300);
+
 /// Playback starts slightly before the cue so its first word is not cut off.
 const _replayLeadIn = Duration(milliseconds: 250);
 
@@ -28,6 +31,11 @@ class SubtitleCue {
     final end = this.end;
     return start != null && end != null && end > start;
   }
+
+  /// Where a saved clip begins and ends. Only meaningful when [canReplay] is
+  /// true.
+  Duration get clipFrom => replayFrom;
+  Duration get clipTo => end! + _clipTail;
 
   /// Where "play again" begins. Only meaningful when [canReplay] is true.
   Duration get replayFrom {

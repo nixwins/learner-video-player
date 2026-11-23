@@ -73,7 +73,11 @@ class YoutubeLoaderNotifier extends Notifier<YoutubeLoadState> {
       if (cancellation.isCancelled) return _idle();
       await ref
           .read(playerGatewayProvider)
-          .open(video.videoPath, subtitlePath: video.subtitlePath);
+          .open(
+            video.videoPath,
+            subtitlePath: video.subtitlePath,
+            title: video.title,
+          );
       state = const YoutubeLoadState.idle();
       return YoutubeOpenResult(
         title: video.title,

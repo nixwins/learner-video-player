@@ -14,6 +14,8 @@ const _timeStyle = TextStyle(
   fontFeatures: [FontFeature.tabularFigures()],
 );
 
+const seekStep = Duration(seconds: 10);
+
 /// Floating "glass" control bar shown over the video.
 class PlayerControls extends ConsumerWidget {
   const PlayerControls({
@@ -21,11 +23,13 @@ class PlayerControls extends ConsumerWidget {
     required this.onOpenVideo,
     required this.onLoadSubtitles,
     required this.onOpenUrl,
+    required this.onOpenSettings,
   });
 
   final VoidCallback onOpenVideo;
   final VoidCallback onLoadSubtitles;
   final VoidCallback onOpenUrl;
+  final VoidCallback onOpenSettings;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -76,6 +80,16 @@ class PlayerControls extends ConsumerWidget {
                     onPressed: onOpenUrl,
                   ),
                   const Spacer(),
+                  IconButton(
+                    tooltip: 'Previous sentence (Shift+←)',
+                    icon: const Icon(Icons.skip_previous_rounded),
+                    onPressed: () => gateway.seekToSentence(next: false),
+                  ),
+                  IconButton(
+                    tooltip: 'Back 10 s (←)',
+                    icon: const Icon(Icons.replay_10_rounded),
+                    onPressed: () => gateway.seekBy(seekStep * -1),
+                  ),
                   IconButton.filled(
                     tooltip: playing ? 'Pause (Space)' : 'Play (Space)',
                     iconSize: 28,
@@ -88,10 +102,25 @@ class PlayerControls extends ConsumerWidget {
                     ),
                     onPressed: gateway.togglePlay,
                   ),
+                  IconButton(
+                    tooltip: 'Forward 10 s (→)',
+                    icon: const Icon(Icons.forward_10_rounded),
+                    onPressed: () => gateway.seekBy(seekStep),
+                  ),
+                  IconButton(
+                    tooltip: 'Next sentence (Shift+→)',
+                    icon: const Icon(Icons.skip_next_rounded),
+                    onPressed: () => gateway.seekToSentence(next: true),
+                  ),
                   const Spacer(),
                   const AudioTrackMenu(),
                   SubtitleMenu(onLoadFile: onLoadSubtitles),
                   const NativeLanguageMenu(),
+                  IconButton(
+                    tooltip: 'Settings',
+                    icon: const Icon(Icons.settings_rounded),
+                    onPressed: onOpenSettings,
+                  ),
                 ],
               ),
             ],

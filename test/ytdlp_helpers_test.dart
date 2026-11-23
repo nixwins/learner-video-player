@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:learner_video_player/features/youtube/data/executable_finder.dart';
+import 'package:learner_video_player/core/executable_finder.dart';
 import 'package:learner_video_player/features/youtube/data/ytdlp_video_resolver.dart';
 import 'package:learner_video_player/features/youtube/domain/video_resolver.dart';
 

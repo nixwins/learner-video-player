@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:learner_video_player/app.dart';
 import 'package:learner_video_player/features/player/data/media_kit_player_gateway.dart';
 import 'package:learner_video_player/features/player/presentation/player_providers.dart';
+import 'package:learner_video_player/features/sentences/data/ffmpeg_clip_cutter.dart';
+import 'package:learner_video_player/features/sentences/data/freqapp_api.dart';
+import 'package:learner_video_player/features/sentences/presentation/sentence_providers.dart';
 import 'package:learner_video_player/features/settings/data/prefs_settings_repository.dart';
 import 'package:learner_video_player/features/settings/presentation/settings_providers.dart';
 import 'package:learner_video_player/features/translation/data/webview_translation_launcher.dart';
@@ -29,6 +32,8 @@ Future<void> main() async {
           WebviewTranslationLauncher(),
         ),
         videoResolverProvider.overrideWithValue(YtDlpVideoResolver()),
+        sentenceRepositoryProvider.overrideWithValue(FreqAppApi()),
+        clipCutterProvider.overrideWithValue(FfmpegClipCutter()),
         settingsRepositoryProvider.overrideWithValue(
           PrefsSettingsRepository(prefs),
         ),

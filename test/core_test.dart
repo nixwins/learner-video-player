@@ -20,4 +20,26 @@ void main() {
     expect(classifyMedia('notes.txt'), MediaKind.unsupported);
     expect(classifyMedia('noextension'), MediaKind.unsupported);
   });
+
+  group('titleFromPath', () {
+    test('drops folders and extension', () {
+      expect(titleFromPath('/Users/me/Friends S01E02.mp4'), 'Friends S01E02');
+    });
+
+    test('works with Windows separators', () {
+      expect(titleFromPath(r'C:\Videos\Show.mov'), 'Show');
+    });
+
+    test('keeps dots inside the name', () {
+      expect(titleFromPath('/v/The.Office.US.s01.mp4'), 'The.Office.US.s01');
+    });
+
+    test('keeps a name without an extension', () {
+      expect(titleFromPath('/v/clip'), 'clip');
+    });
+
+    test('does not strip a leading dot', () {
+      expect(titleFromPath('/v/.hidden'), '.hidden');
+    });
+  });
 }

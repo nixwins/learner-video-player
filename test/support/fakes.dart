@@ -4,6 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:learner_video_player/core/choice.dart';
 import 'package:learner_video_player/features/player/domain/player_gateway.dart';
+import 'package:learner_video_player/features/player/domain/video_source.dart';
+import 'package:learner_video_player/features/sentences/domain/clip_cutter.dart';
+import 'package:learner_video_player/features/sentences/domain/freqapp_credentials.dart';
+import 'package:learner_video_player/features/sentences/domain/sentence_repository.dart';
 import 'package:learner_video_player/features/settings/domain/settings_repository.dart';
 import 'package:learner_video_player/features/subtitles/domain/subtitle_cue.dart';
 import 'package:learner_video_player/features/translation/domain/translation_launcher.dart';
@@ -64,13 +68,34 @@ class FakePlayerGateway implements PlayerGateway {
   Future<void> togglePlay() async => togglePlayCalls++;
 
   final opened = <(String, String?)>[];
+  final openedTitles = <String?>[];
+  VideoSource? source = const VideoSource(
+    path: '/videos/Friends S01E02.mp4',
+    title: 'Friends S01E02',
+    audioStreamIndex: 1,
+  );
 
   @override
-  Future<void> open(String path, {String? subtitlePath}) async =>
-      opened.add((path, subtitlePath));
+  VideoSource? currentSource() => source;
+
+  @override
+  Future<void> open(String path, {String? subtitlePath, String? title}) async {
+    opened.add((path, subtitlePath));
+    openedTitles.add(title);
+  }
 
   @override
   Future<void> seek(Duration position) async {}
+
+  final seekDeltas = <Duration>[];
+  final sentenceSeeks = <bool>[];
+
+  @override
+  Future<void> seekBy(Duration delta) async => seekDeltas.add(delta);
+
+  @override
+  Future<void> seekToSentence({required bool next}) async =>
+      sentenceSeeks.add(next);
 
   @override
   Future<void> selectAudio(String id) async {}
@@ -110,7 +135,26 @@ class FakePlayerGateway implements PlayerGateway {
 }
 
 class FakeSettings implements SettingsRepository {
-  FakeSettings([this.nativeLanguageCode, this.translationPanelWidth]);
+  FakeSettings([
+    this.nativeLanguageCode,
+    this.translationPanelWidth,
+    this.freqAppServer,
+    this.freqAppApiKey,
+  ]);
+
+  @override
+  String? freqAppServer;
+
+  @override
+  String? freqAppApiKey;
+
+  @override
+  Future<void> saveFreqAppServer(String server) async =>
+      freqAppServer = server.isEmpty ? null : server;
+
+  @override
+  Future<void> saveFreqAppApiKey(String apiKey) async =>
+      freqAppApiKey = apiKey.isEmpty ? null : apiKey;
 
   @override
   String? nativeLanguageCode;
@@ -166,5 +210,49 @@ class FakeVideoResolver implements VideoResolver {
     final failure = this.failure;
     if (failure != null) throw failure;
     return result!;
+  }
+}
+
+class FakeSentenceRepository implements SentenceRepository {
+  final uploads = <(SentenceUpload, FreqAppCredentials)>[];
+  SentenceSaveException? failure;
+
+  /// When set, save waits for it so tests can look at the "saving" state.
+  Completer<void>? gate;
+
+  @override
+  Future<SavedSentence> save(
+    SentenceUpload upload,
+    FreqAppCredentials credentials,
+  ) async {
+    uploads.add((upload, credentials));
+    await gate?.future;
+    final failure = this.failure;
+    if (failure != null) throw failure;
+    return SavedSentence(id: 'id-1', withVideo: upload.videoPath != null);
+  }
+}
+
+class FakeClipCutter implements ClipCutter {
+  final cuts = <({String source, Duration from, Duration to, int? audio})>[];
+  int discarded = 0;
+  int bytes = 1024;
+  ClipException? failure;
+
+  @override
+  Future<Clip> cut({
+    required String sourcePath,
+    required Duration from,
+    required Duration to,
+    int? audioStreamIndex,
+  }) async {
+    cuts.add((source: sourcePath, from: from, to: to, audio: audioStreamIndex));
+    final failure = this.failure;
+    if (failure != null) throw failure;
+    return Clip(
+      path: '/tmp/clip.mp4',
+      bytes: bytes,
+      discard: () async => discarded++,
+    );
   }
 }

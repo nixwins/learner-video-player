@@ -8,4 +8,15 @@ abstract interface class SettingsRepository {
   double? get translationPanelWidth;
 
   Future<void> saveTranslationPanelWidth(double width);
+
+  /// The FreqApp server address, or null if it was never set.
+  String? get freqAppServer;
+
+  Future<void> saveFreqAppServer(String server);
+
+  /// The FreqApp API key, or null if it was never set. It is a secret: never
+  /// log it.
+  String? get freqAppApiKey;
+
+  Future<void> saveFreqAppApiKey(String apiKey);
 }

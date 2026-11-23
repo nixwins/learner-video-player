@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:learner_video_player/core/choice.dart';
+import 'package:learner_video_player/core/media_types.dart';
 import 'package:learner_video_player/features/player/domain/player_gateway.dart';
+import 'package:learner_video_player/features/player/domain/video_source.dart';
 import 'package:learner_video_player/features/subtitles/domain/subtitle_cue.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -32,9 +34,25 @@ class MediaKitPlayerGateway implements PlayerGateway {
   /// How long to wait for a freshly opened file before adding its subtitles.
   static const _loadTimeout = Duration(seconds: 5);
 
+  VideoSource? _source;
+
   @override
-  Future<void> open(String path, {String? subtitlePath}) async {
+  VideoSource? currentSource() {
+    final source = _source;
+    if (source == null) return null;
+    // mpv numbers audio tracks from 1; ffmpeg counts audio streams from 0.
+    final number = int.tryParse(_player.state.track.audio.id);
+    return VideoSource(
+      path: source.path,
+      title: source.title,
+      audioStreamIndex: number == null ? null : number - 1,
+    );
+  }
+
+  @override
+  Future<void> open(String path, {String? subtitlePath, String? title}) async {
     _cancelRange();
+    _source = VideoSource(path: path, title: title ?? titleFromPath(path));
     // mpv rejects "add subtitle" until a file is loaded; a new duration is the
     // earliest signal that it is. Listen before opening so it is not missed.
     final loaded = subtitlePath == null
@@ -65,6 +83,26 @@ class MediaKitPlayerGateway implements PlayerGateway {
   Future<void> seek(Duration position) {
     _cancelRange();
     return _player.seek(position);
+  }
+
+  @override
+  Future<void> seekBy(Duration delta) {
+    final state = _player.state;
+    final target = state.position + delta;
+    final end = state.duration;
+    final clamped = target < Duration.zero
+        ? Duration.zero
+        : (end > Duration.zero && target > end ? end : target);
+    return seek(clamped);
+  }
+
+  @override
+  Future<void> seekToSentence({required bool next}) async {
+    _cancelRange();
+    try {
+      final platform = _player.platform as dynamic;
+      await platform.command(['sub-seek', next ? '1' : '-1']);
+    } catch (_) {}
   }
 
   @override

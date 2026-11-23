@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:learner_video_player/features/youtube/data/executable_finder.dart';
+import 'package:learner_video_player/core/executable_finder.dart';
 import 'package:learner_video_player/features/youtube/domain/caption_cleaner.dart';
 import 'package:learner_video_player/features/youtube/domain/video_resolver.dart';
 import 'package:learner_video_player/features/youtube/domain/youtube_url.dart';

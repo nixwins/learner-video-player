@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:learner_video_player/core/theme.dart';
 import 'package:learner_video_player/features/player/presentation/player_providers.dart';
+import 'package:learner_video_player/features/sentences/presentation/save_sentence_button.dart';
 import 'package:learner_video_player/features/settings/presentation/settings_providers.dart';
 import 'package:learner_video_player/features/subtitles/presentation/clickable_words.dart';
 import 'package:learner_video_player/features/translation/domain/translation_launcher.dart';
@@ -145,8 +146,10 @@ class _SentenceHeader extends ConsumerWidget {
                   icon: const Icon(Icons.replay_rounded, size: 18),
                   label: const Text('Play again'),
                 ),
+                SaveSentenceButton(cue: cue),
               ],
             ),
+            SaveSentenceStatus(cue: cue),
           ],
         ],
       ),
