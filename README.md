@@ -14,6 +14,23 @@ Works on **macOS**. Windows is not supported yet: the embedded translation panel
 
 ---
 
+## Quick install (ready-made app)
+
+No Flutter, Xcode or Homebrew needed. ffmpeg and yt-dlp are already inside.
+
+1. Open the [Releases page](https://github.com/nixwins/learner-video-player/releases) and download the latest `LearnerVideoPlayer-…-arm64.dmg` (for Macs with an Apple chip: M1, M2, M3, M4).
+2. Open the downloaded file and drag **Learner Video Player** onto the **Applications** folder.
+3. The app is not signed with a paid Apple certificate, so macOS blocks the first start. To allow it **once**:
+   - Open **Applications**, **right-click** the app and choose **Open**, then click **Open** again.
+   - If macOS only offers "Done": open **System Settings → Privacy & Security**, scroll down to the message about *Learner Video Player* and click **Open Anyway**.
+   - Or in Terminal: `xattr -dr com.apple.quarantine "/Applications/Learner Video Player.app"`
+
+The packaged ffmpeg is a GPL build from [martin-riedl.de](https://ffmpeg.martin-riedl.de) and yt-dlp comes from [its official releases](https://github.com/yt-dlp/yt-dlp/releases). If a YouTube link stops working, install a newer app version: YouTube changes often and the packaged yt-dlp gets old.
+
+Prefer to build it yourself? Continue with the step-by-step guide below.
+
+---
+
 ## Table of contents
 
 1. [What you need](#1-what-you-need)
@@ -316,6 +333,14 @@ Run the app with `flutter run -d macos` and look at the messages in the Terminal
 ---
 
 ## 6. For developers
+
+### Build a disk image (.dmg)
+
+```bash
+./scripts/make_dmg.sh
+```
+
+It builds the release app, downloads ffmpeg and yt-dlp for your CPU, puts them into `Contents/Resources/bin` (the app looks there first), signs everything ad-hoc and creates `build/dmg/LearnerVideoPlayer-<version>-<arch>.dmg`. The result only runs on the CPU type you built on.
 
 ### Commands
 

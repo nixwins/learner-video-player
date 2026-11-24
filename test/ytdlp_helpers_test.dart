@@ -110,6 +110,23 @@ void main() {
       expect(dirs, contains('/Users/me/.local/bin'));
     });
 
+    test('looks inside the app bundle first on macOS', () {
+      final dirs = defaultSearchDirs(
+        environment: {'PATH': '/usr/bin', 'HOME': '/Users/me'},
+        isWindows: false,
+        executablePath:
+            '/Applications/Learner Video Player.app/Contents/MacOS/learner_video_player',
+      );
+      expect(
+        dirs.first,
+        '/Applications/Learner Video Player.app/Contents/Resources/bin',
+      );
+    });
+
+    test('has no bundle folder outside an app bundle', () {
+      expect(bundledToolsDir('/usr/local/bin/dart'), isNull);
+    });
+
     test('splits PATH with semicolons on Windows', () {
       final dirs = defaultSearchDirs(
         environment: {
