@@ -38,13 +38,26 @@ Pick **one** of the two ways. You do not need to know how to program, and you do
 
 ### Way 1. One command with Homebrew (recommended)
 
-[Homebrew](https://brew.sh) is a tool that installs apps from the Terminal. If `brew --version` prints a version, you already have it. If not, install it first (see [Step 2](#step-2-install-homebrew-a-tool-that-installs-other-tools) for the details):
+[Homebrew](https://brew.sh) is a tool that installs apps from the Terminal.
+
+**Step 1. Check whether you already have it.** Run:
+
+```bash
+brew --version
+```
+
+- If it prints a version (for example `Homebrew 4.x`), **you already have it: go straight to Step 3.**
+- If it says `command not found: brew`, do Step 2 first.
+
+**Step 2. Install Homebrew (only if Step 1 said `command not found`).** Skip this step otherwise.
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-Then install the app:
+When it finishes it prints **Next steps** with two or three commands. Copy and run those too, then open a new Terminal window. More details are in [Build from source, Step 2](#step-2-install-homebrew-a-tool-that-installs-other-tools).
+
+**Step 3. Install the app:**
 
 ```bash
 brew install --cask nixwins/tap/learner-video-player
