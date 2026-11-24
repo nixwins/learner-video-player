@@ -6,6 +6,7 @@ import 'package:learner_video_player/core/duration_format.dart';
 import 'package:learner_video_player/core/theme.dart';
 import 'package:learner_video_player/features/player/presentation/player_providers.dart';
 import 'package:learner_video_player/features/player/presentation/track_menus.dart';
+import 'package:learner_video_player/features/sentences/presentation/sentence_providers.dart';
 import 'package:learner_video_player/features/settings/presentation/native_language_menu.dart';
 
 const _timeStyle = TextStyle(
@@ -24,12 +25,14 @@ class PlayerControls extends ConsumerWidget {
     required this.onLoadSubtitles,
     required this.onOpenUrl,
     required this.onOpenSettings,
+    required this.onToggleSaved,
   });
 
   final VoidCallback onOpenVideo;
   final VoidCallback onLoadSubtitles;
   final VoidCallback onOpenUrl;
   final VoidCallback onOpenSettings;
+  final VoidCallback onToggleSaved;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -116,6 +119,15 @@ class PlayerControls extends ConsumerWidget {
                   const AudioTrackMenu(),
                   SubtitleMenu(onLoadFile: onLoadSubtitles),
                   const NativeLanguageMenu(),
+                  IconButton(
+                    tooltip: 'Saved sentences',
+                    icon: Icon(
+                      ref.watch(savedPanelOpenProvider)
+                          ? Icons.bookmarks_rounded
+                          : Icons.bookmarks_outlined,
+                    ),
+                    onPressed: onToggleSaved,
+                  ),
                   IconButton(
                     tooltip: 'Settings',
                     icon: const Icon(Icons.settings_rounded),

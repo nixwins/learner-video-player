@@ -7,6 +7,7 @@ import 'package:learner_video_player/features/player/domain/player_gateway.dart'
 import 'package:learner_video_player/features/player/domain/video_source.dart';
 import 'package:learner_video_player/features/sentences/domain/clip_cutter.dart';
 import 'package:learner_video_player/features/sentences/domain/freqapp_credentials.dart';
+import 'package:learner_video_player/features/sentences/domain/sentence_library.dart';
 import 'package:learner_video_player/features/sentences/domain/sentence_repository.dart';
 import 'package:learner_video_player/features/settings/domain/settings_repository.dart';
 import 'package:learner_video_player/features/subtitles/domain/subtitle_cue.dart';
@@ -143,6 +144,13 @@ class FakeSettings implements SettingsRepository {
   ]);
 
   @override
+  String? saveDestination;
+
+  @override
+  Future<void> saveSaveDestination(String destination) async =>
+      saveDestination = destination;
+
+  @override
   String? freqAppServer;
 
   @override
@@ -255,4 +263,45 @@ class FakeClipCutter implements ClipCutter {
       discard: () async => discarded++,
     );
   }
+}
+
+class FakeSentenceLibrary implements SentenceLibrary {
+  final added = <LocalSentence>[];
+  final removed = <int>[];
+  Object? failure;
+  var _nextId = 1;
+
+  @override
+  String get folder => '/library';
+
+  @override
+  Future<LocalSentence> add({
+    required String text,
+    String? showName,
+    Clip? clip,
+    Duration? clipDuration,
+  }) async {
+    final failure = this.failure;
+    if (failure != null) throw failure;
+    final id = _nextId++;
+    final sentence = LocalSentence(
+      id: id,
+      text: text,
+      showName: showName,
+      savedAt: DateTime(2026, 11, 24),
+      videoPath: clip == null ? null : '/library/sentence-$id.mp4',
+      subtitlePath: clip == null ? null : '/library/sentence-$id.srt',
+    );
+    added.add(sentence);
+    return sentence;
+  }
+
+  @override
+  Future<List<LocalSentence>> all() async => [
+    for (final sentence in added.reversed)
+      if (!removed.contains(sentence.id)) sentence,
+  ];
+
+  @override
+  Future<void> remove(int id) async => removed.add(id);
 }

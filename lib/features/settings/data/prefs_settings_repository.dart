@@ -7,6 +7,7 @@ class PrefsSettingsRepository implements SettingsRepository {
   static const _nativeLanguageKey = 'native_language_code';
 
   static const _panelWidthKey = 'translation_panel_width';
+  static const _saveDestinationKey = 'save_destination';
   static const _freqAppServerKey = 'freqapp_server';
   static const _freqAppApiKeyKey = 'freqapp_api_key';
 
@@ -25,6 +26,13 @@ class PrefsSettingsRepository implements SettingsRepository {
   @override
   Future<void> saveTranslationPanelWidth(double width) =>
       _prefs.setDouble(_panelWidthKey, width);
+
+  @override
+  String? get saveDestination => _read(_saveDestinationKey);
+
+  @override
+  Future<void> saveSaveDestination(String destination) =>
+      _write(_saveDestinationKey, destination);
 
   @override
   String? get freqAppServer => _read(_freqAppServerKey);

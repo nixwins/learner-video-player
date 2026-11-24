@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:learner_video_player/features/sentences/domain/save_destination.dart';
 import 'package:learner_video_player/features/sentences/presentation/sentence_providers.dart';
 import 'package:learner_video_player/features/settings/presentation/settings_dialog.dart';
 import 'package:learner_video_player/features/settings/presentation/settings_providers.dart';
 import 'package:learner_video_player/features/subtitles/domain/subtitle_cue.dart';
 
-/// "Save" button for one sentence. Without FreqApp settings it opens them
-/// first, then saves.
+/// "Save" button for one sentence. When saving to the server without FreqApp
+/// settings, it opens them first, then saves.
 class SaveSentenceButton extends ConsumerWidget {
   const SaveSentenceButton({super.key, required this.cue});
 
   final SubtitleCue cue;
 
   Future<void> _onPressed(BuildContext context, WidgetRef ref) async {
-    if (!ref.read(freqAppSettingsProvider).isConfigured) {
+    final toServer =
+        ref.read(saveDestinationProvider) == SaveDestination.server;
+    if (toServer && !ref.read(freqAppSettingsProvider).isConfigured) {
       final saved = await showSettingsDialog(context);
       if (!saved) return;
     }

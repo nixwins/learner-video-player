@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:learner_video_player/core/languages.dart';
 import 'package:learner_video_player/features/sentences/domain/freqapp_credentials.dart';
+import 'package:learner_video_player/features/sentences/domain/save_destination.dart';
 import 'package:learner_video_player/features/settings/domain/settings_repository.dart';
 
 /// Wired in `main.dart`.
@@ -67,4 +68,31 @@ class FreqAppSettingsNotifier extends Notifier<FreqAppSettings> {
 final freqAppSettingsProvider =
     NotifierProvider<FreqAppSettingsNotifier, FreqAppSettings>(
       FreqAppSettingsNotifier.new,
+    );
+
+/// Where Save puts sentences. Until the user chooses, it is the server for
+/// someone who already set it up, and this computer for everyone else.
+class SaveDestinationNotifier extends Notifier<SaveDestination> {
+  @override
+  SaveDestination build() {
+    final stored = SaveDestination.fromStorage(
+      ref.read(settingsRepositoryProvider).saveDestination,
+    );
+    if (stored != null) return stored;
+    return ref.read(freqAppSettingsProvider).isConfigured
+        ? SaveDestination.server
+        : SaveDestination.local;
+  }
+
+  Future<void> select(SaveDestination destination) async {
+    state = destination;
+    await ref
+        .read(settingsRepositoryProvider)
+        .saveSaveDestination(destination.storageValue);
+  }
+}
+
+final saveDestinationProvider =
+    NotifierProvider<SaveDestinationNotifier, SaveDestination>(
+      SaveDestinationNotifier.new,
     );

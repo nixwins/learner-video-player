@@ -1,24 +1,72 @@
 import 'package:learner_video_player/features/player/domain/video_source.dart';
 import 'package:learner_video_player/features/sentences/domain/clip_cutter.dart';
 import 'package:learner_video_player/features/sentences/domain/freqapp_credentials.dart';
+import 'package:learner_video_player/features/sentences/domain/sentence_library.dart';
 import 'package:learner_video_player/features/sentences/domain/sentence_repository.dart';
 import 'package:learner_video_player/features/subtitles/domain/subtitle_cue.dart';
 
-/// Use case: save a subtitle sentence together with just its video fragment.
+/// Use case: save a subtitle sentence together with just its video fragment,
+/// either to the server or to the list on this computer.
 ///
 /// When the cue's timing is unknown the sentence is saved without a video;
 /// [SavedSentence.withVideo] tells the caller.
 class SaveSentence {
-  const SaveSentence({required this.repository, required this.cutter});
+  const SaveSentence({
+    required this.repository,
+    required this.cutter,
+    required this.library,
+  });
 
   final SentenceRepository repository;
   final ClipCutter cutter;
+  final SentenceLibrary library;
 
   Future<SavedSentence> call({
     required SubtitleCue cue,
     required VideoSource? source,
     required FreqAppCredentials credentials,
-  }) async {
+  }) => _run(
+    cue,
+    source,
+    (text, showName, clip) async => repository.save(
+      SentenceUpload(
+        sentence: text,
+        tvShowName: showName,
+        videoPath: clip?.path,
+      ),
+      credentials,
+    ),
+  );
+
+  /// Saves to the list on this computer.
+  Future<SavedSentence> saveLocally({
+    required SubtitleCue cue,
+    required VideoSource? source,
+  }) => _run(cue, source, (text, showName, clip) async {
+    try {
+      final saved = await library.add(
+        text: text,
+        showName: showName,
+        clip: clip,
+        clipDuration: clip == null ? null : cue.clipTo - cue.clipFrom,
+      );
+      return SavedSentence(id: '${saved.id}', withVideo: saved.hasVideo);
+    } on SentenceSaveException {
+      rethrow;
+    } catch (e) {
+      throw SentenceSaveException(
+        SaveError.storage,
+        'Could not save on this computer: $e',
+      );
+    }
+  });
+
+  Future<SavedSentence> _run(
+    SubtitleCue cue,
+    VideoSource? source,
+    Future<SavedSentence> Function(String text, String? showName, Clip? clip)
+    store,
+  ) async {
     final text = cue.text.trim();
     if (text.isEmpty) {
       throw const SentenceSaveException(
@@ -45,14 +93,7 @@ class SaveSentence {
           );
         }
       }
-      return await repository.save(
-        SentenceUpload(
-          sentence: text,
-          tvShowName: _showName(source),
-          videoPath: clip?.path,
-        ),
-        credentials,
-      );
+      return await store(text, _showName(source), clip);
     } finally {
       await clip?.discard();
     }

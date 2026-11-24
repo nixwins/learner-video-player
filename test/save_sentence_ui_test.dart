@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -16,6 +18,9 @@ import 'package:learner_video_player/features/translation/presentation/translati
 
 import 'support/fakes.dart';
 
+FakeSettings _serverWithoutKey() =>
+    FakeSettings('kk')..saveDestination = 'server';
+
 class _Harness {
   _Harness({FakeSettings? settings})
     : settings =
@@ -26,6 +31,7 @@ class _Harness {
   final launcher = FakeTranslationLauncher();
   final repository = FakeSentenceRepository();
   final cutter = FakeClipCutter();
+  final library = FakeSentenceLibrary();
   final FakeSettings settings;
 }
 
@@ -43,6 +49,7 @@ Future<_Harness> _pump(WidgetTester tester, {FakeSettings? settings}) async {
         settingsRepositoryProvider.overrideWithValue(harness.settings),
         sentenceRepositoryProvider.overrideWithValue(harness.repository),
         clipCutterProvider.overrideWithValue(harness.cutter),
+        sentenceLibraryProvider.overrideWithValue(harness.library),
       ],
       child: MaterialApp(theme: buildAppTheme(), home: const PlayerPage()),
     ),
@@ -184,7 +191,7 @@ void main() {
 
   group('without FreqApp settings', () {
     testWidgets('Save asks for them first, then saves', (tester) async {
-      final harness = await _pump(tester, settings: FakeSettings('kk'));
+      final harness = await _pump(tester, settings: _serverWithoutKey());
       await _openPanel(tester);
 
       await tester.tap(_saveButton);
@@ -206,7 +213,7 @@ void main() {
     });
 
     testWidgets('cancelling the settings sends nothing', (tester) async {
-      final harness = await _pump(tester, settings: FakeSettings('kk'));
+      final harness = await _pump(tester, settings: _serverWithoutKey());
       await _openPanel(tester);
 
       await tester.tap(_saveButton);
@@ -216,6 +223,40 @@ void main() {
 
       expect(find.byType(AlertDialog), findsNothing);
       expect(harness.repository.uploads, isEmpty);
+      expect(_saveButton, findsOneWidget);
+    });
+  });
+
+  group('saving on this computer', () {
+    testWidgets('Save keeps the sentence locally without any server', (
+      tester,
+    ) async {
+      final harness = await _pump(tester, settings: FakeSettings('kk'));
+      await _openPanel(tester);
+
+      await tester.tap(_saveButton);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(harness.repository.uploads, isEmpty);
+      expect(harness.library.added.single.text, 'I know the government');
+      expect(harness.library.added.single.hasVideo, isTrue);
+      expect(find.text('Saved'), findsOneWidget);
+      expect(
+        find.text('Saved on this computer with its video fragment.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a storage problem is shown', (tester) async {
+      final harness = await _pump(tester, settings: FakeSettings('kk'));
+      harness.library.failure = const FileSystemException('disk full');
+      await _openPanel(tester);
+
+      await tester.tap(_saveButton);
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Could not save on this computer'), findsOne);
       expect(_saveButton, findsOneWidget);
     });
   });

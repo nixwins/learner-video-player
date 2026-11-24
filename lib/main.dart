@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:learner_video_player/app.dart';
@@ -5,6 +7,7 @@ import 'package:learner_video_player/features/player/data/media_kit_player_gatew
 import 'package:learner_video_player/features/player/presentation/player_providers.dart';
 import 'package:learner_video_player/features/sentences/data/ffmpeg_clip_cutter.dart';
 import 'package:learner_video_player/features/sentences/data/freqapp_api.dart';
+import 'package:learner_video_player/features/sentences/data/sqlite_sentence_library.dart';
 import 'package:learner_video_player/features/sentences/presentation/sentence_providers.dart';
 import 'package:learner_video_player/features/settings/data/prefs_settings_repository.dart';
 import 'package:learner_video_player/features/settings/presentation/settings_providers.dart';
@@ -13,12 +16,21 @@ import 'package:learner_video_player/features/translation/presentation/translati
 import 'package:learner_video_player/features/youtube/data/ytdlp_video_resolver.dart';
 import 'package:learner_video_player/features/youtube/presentation/youtube_providers.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
+  sqfliteFfiInit();
+  final library = await SqliteSentenceLibrary.open(
+    await getApplicationSupportDirectory().then(
+      (dir) => Directory('${dir.path}/sentences'),
+    ),
+    databaseFactoryFfi,
+  );
 
   runApp(
     ProviderScope(
@@ -33,6 +45,7 @@ Future<void> main() async {
         ),
         videoResolverProvider.overrideWithValue(YtDlpVideoResolver()),
         sentenceRepositoryProvider.overrideWithValue(FreqAppApi()),
+        sentenceLibraryProvider.overrideWithValue(library),
         clipCutterProvider.overrideWithValue(FfmpegClipCutter()),
         settingsRepositoryProvider.overrideWithValue(
           PrefsSettingsRepository(prefs),

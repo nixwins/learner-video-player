@@ -15,7 +15,8 @@ Future<FakeSettings> _pumpDialog(
   FakeSettings? settings,
   List<bool>? results,
 }) async {
-  final repository = settings ?? FakeSettings('kk');
+  final repository =
+      settings ?? (FakeSettings('kk')..saveDestination = 'server');
   await tester.pumpWidget(
     ProviderScope(
       overrides: [settingsRepositoryProvider.overrideWithValue(repository)],
@@ -177,8 +178,79 @@ void main() {
     await tester.tap(find.byTooltip('Settings'));
     await tester.pumpAndSettle();
 
-    expect(find.text('FreqApp'), findsOneWidget);
-    expect(find.text('Server address'), findsOneWidget);
-    expect(find.text('API key'), findsOneWidget);
+    expect(find.text('Save sentences to'), findsOneWidget);
+    expect(find.text('FreqApp server'), findsOneWidget);
+    expect(find.text('This computer'), findsOneWidget);
+  });
+
+  group('save destination', () {
+    testWidgets('first use without a server starts on This computer', (
+      tester,
+    ) async {
+      await _pumpDialog(tester, settings: FakeSettings('kk'));
+
+      expect(find.byType(TextField), findsNothing);
+      expect(find.textContaining('folder on this computer'), findsOneWidget);
+    });
+
+    testWidgets('choosing FreqApp server shows the address and key', (
+      tester,
+    ) async {
+      await _pumpDialog(tester, settings: FakeSettings('kk'));
+
+      await tester.tap(find.text('FreqApp server'));
+      await tester.pump();
+
+      expect(_server, findsOneWidget);
+      expect(_key, findsOneWidget);
+    });
+
+    testWidgets('saving on this computer needs no address or key', (
+      tester,
+    ) async {
+      final results = <bool>[];
+      final settings = await _pumpDialog(
+        tester,
+        settings: FakeSettings('kk'),
+        results: results,
+      );
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(settings.saveDestination, 'local');
+      expect(results, [true]);
+    });
+
+    testWidgets('switching to This computer keeps the stored key', (
+      tester,
+    ) async {
+      final settings = await _pumpDialog(
+        tester,
+        settings: FakeSettings('kk', null, 'https://freq.example.com', 'tvs_x'),
+      );
+
+      await tester.tap(find.text('This computer'));
+      await tester.pump();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(settings.saveDestination, 'local');
+      expect(settings.freqAppApiKey, 'tvs_x');
+    });
+
+    testWidgets('saving to the server remembers that choice', (tester) async {
+      final settings = await _pumpDialog(tester, settings: FakeSettings('kk'));
+
+      await tester.tap(find.text('FreqApp server'));
+      await tester.pump();
+      await tester.enterText(_server, 'freq.example.com');
+      await tester.enterText(_key, 'tvs_new');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(settings.saveDestination, 'server');
+      expect(settings.freqAppApiKey, 'tvs_new');
+    });
   });
 }

@@ -12,6 +12,9 @@ import 'package:learner_video_player/features/player/domain/player_gateway.dart'
 import 'package:learner_video_player/features/player/presentation/player_controls.dart';
 import 'package:learner_video_player/features/player/presentation/player_providers.dart';
 import 'package:learner_video_player/features/player/presentation/subtitle_overlay.dart';
+import 'package:learner_video_player/features/sentences/domain/sentence_library.dart';
+import 'package:learner_video_player/features/sentences/presentation/saved_sentences_panel.dart';
+import 'package:learner_video_player/features/sentences/presentation/sentence_providers.dart';
 import 'package:learner_video_player/features/settings/presentation/settings_dialog.dart';
 import 'package:learner_video_player/features/translation/presentation/translation_panel.dart';
 import 'package:learner_video_player/features/translation/presentation/translation_providers.dart';
@@ -70,6 +73,32 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     }
   }
 
+  Future<void> _playSaved(LocalSentence sentence) async {
+    await ref
+        .read(playerGatewayProvider)
+        .open(
+          sentence.videoPath!,
+          subtitlePath: sentence.subtitlePath,
+          title: sentence.showName,
+        );
+    if (mounted) setState(() => _hasVideo = true);
+  }
+
+  /// Shows or hides the saved list. It shares the side slot with the
+  /// translation panel, so opening it closes that one.
+  void _toggleSaved() {
+    final open = ref.read(savedPanelOpenProvider);
+    final launcher = ref.read(translationLauncherProvider);
+    final translating = launcher.current.value != null;
+    launcher.close();
+    ref.read(savedPanelOpenProvider.notifier).set(translating || !open);
+  }
+
+  void _closePanels() {
+    ref.read(translationLauncherProvider).close();
+    ref.read(savedPanelOpenProvider.notifier).set(false);
+  }
+
   void _showControls() {
     _hideTimer?.cancel();
     if (!_controlsVisible) setState(() => _controlsVisible = true);
@@ -93,12 +122,13 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     });
     final gateway = ref.read(playerGatewayProvider);
     final launcher = ref.watch(translationLauncherProvider);
+    final savedOpen = ref.watch(savedPanelOpenProvider);
 
     return Scaffold(
       body: CallbackShortcuts(
         bindings: {
           const SingleActivator(LogicalKeyboardKey.space): gateway.togglePlay,
-          const SingleActivator(LogicalKeyboardKey.escape): launcher.close,
+          const SingleActivator(LogicalKeyboardKey.escape): _closePanels,
           const SingleActivator(LogicalKeyboardKey.arrowLeft): () =>
               gateway.seekBy(seekStep * -1),
           const SingleActivator(LogicalKeyboardKey.arrowRight): () =>
@@ -134,11 +164,16 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                   return Row(
                     children: [
                       Expanded(child: _buildPlayerArea(gateway)),
-                      if (uri != null) ...[
+                      if (uri != null || savedOpen) ...[
                         _ResizeHandle(available: constraints.maxWidth),
                         SizedBox(
                           width: width,
-                          child: TranslationPanel(uri: uri),
+                          child: uri != null
+                              ? TranslationPanel(uri: uri)
+                              : SavedSentencesPanel(
+                                  onPlay: _playSaved,
+                                  onClose: _closePanels,
+                                ),
                         ),
                       ],
                     ],
@@ -200,6 +235,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                           onLoadSubtitles: () => _pick(subtitleTypeGroup),
                           onOpenUrl: _openUrl,
                           onOpenSettings: () => showSettingsDialog(context),
+                          onToggleSaved: _toggleSaved,
                         ),
                       ),
                     ),

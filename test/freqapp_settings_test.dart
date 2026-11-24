@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:learner_video_player/features/sentences/domain/freqapp_credentials.dart';
+import 'package:learner_video_player/features/sentences/domain/save_destination.dart';
 import 'package:learner_video_player/features/settings/data/prefs_settings_repository.dart';
 import 'package:learner_video_player/features/settings/presentation/settings_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -122,6 +123,49 @@ void main() {
       await repository.saveFreqAppApiKey('');
 
       expect(repository.freqAppApiKey, isNull);
+    });
+  });
+
+  group('SaveDestination', () {
+    test('is local when nothing was chosen and no server is set', () {
+      final container = _container(FakeSettings());
+      expect(container.read(saveDestinationProvider), SaveDestination.local);
+    });
+
+    test('is the server for someone who already set it up', () {
+      final container = _container(
+        FakeSettings(null, null, 'https://freq.example.com', 'tvs_abc'),
+      );
+      expect(container.read(saveDestinationProvider), SaveDestination.server);
+    });
+
+    test('an explicit choice wins over the default', () {
+      final settings = FakeSettings(
+        null,
+        null,
+        'https://freq.example.com',
+        'tvs_abc',
+      )..saveDestination = 'local';
+      final container = _container(settings);
+      expect(container.read(saveDestinationProvider), SaveDestination.local);
+    });
+
+    test('selecting remembers the choice', () async {
+      final settings = FakeSettings();
+      final container = _container(settings);
+
+      await container
+          .read(saveDestinationProvider.notifier)
+          .select(SaveDestination.server);
+
+      expect(container.read(saveDestinationProvider), SaveDestination.server);
+      expect(settings.saveDestination, 'server');
+    });
+
+    test('an unknown stored value falls back to the default', () {
+      final settings = FakeSettings()..saveDestination = 'cloud';
+      final container = _container(settings);
+      expect(container.read(saveDestinationProvider), SaveDestination.local);
     });
   });
 }

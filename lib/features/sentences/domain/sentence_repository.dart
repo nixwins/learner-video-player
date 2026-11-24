@@ -34,6 +34,9 @@ enum SaveError {
   clip,
   network,
 
+  /// Writing to the local list or its folder failed.
+  storage,
+
   /// The request may have reached the server; saving again could duplicate.
   uncertain,
   server,

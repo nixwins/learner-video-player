@@ -105,7 +105,7 @@ brew install yt-dlp ffmpeg
 ```
 
 - **`yt-dlp`** is needed to open YouTube links. YouTube changes often, so if downloads stop working, update it with `brew upgrade yt-dlp`.
-- **`ffmpeg`** is needed to **save sentences with their video fragment** (see [Save a sentence](#save-a-sentence-to-freqapp)). It also lets YouTube downloads use better quality (up to 720p).
+- **`ffmpeg`** is needed to **save sentences with their video fragment** (see [Save a sentence](#save-a-sentence)). It also lets YouTube downloads use better quality (up to 720p).
 
 You can skip this step and install them later.
 
@@ -205,31 +205,47 @@ Only English subtitles are used. Hand-written subtitles are preferred; otherwise
 
 Downloaded videos are kept in the system's temporary folder, so macOS cleans them up by itself.
 
-### Save a sentence to FreqApp
+### Save a sentence
 
-You can send the sentence you are looking at, **together with just its video fragment**, to your FreqApp server.
+You can save the sentence you are looking at, **together with just its video fragment**, in one of two places. Choose it once in **Settings** (gear icon in the control bar), under **Save sentences to**:
 
-**One-time setup**
+- **This computer** — the sentence and its `.mp4` fragment are kept in a folder on your Mac and listed inside the app. No account or internet needed.
+- **FreqApp server** — the sentence and fragment are uploaded to your FreqApp server.
 
-1. Click the **gear icon** in the control bar to open **Settings**.
-2. Fill in the **FreqApp** section:
-   - **Server address**, for example `https://freqapp.example.com` (ask whoever runs the server).
-   - **API key**, which starts with `tvs_`. An admin creates it in FreqApp under **Settings → API keys** and it is shown **only once**, so copy it right away.
-3. Press **Save**.
-
-Click the eye icon in the key field to check what you typed. **To replace the key** later, open Settings, type the new key over the old one and press **Save**. The new key is used immediately. The key is stored on this computer only and is only ever sent to the server address you entered.
+If you never chose, the app uses **This computer**, or the server if you had already set it up.
 
 **Saving a sentence**
 
 1. Click a word in the subtitles so the panel opens.
 2. Press **Save** under the sentence.
-3. The app cuts the fragment of that sentence out of the video as an `.mp4` (with `ffmpeg`), uploads it together with the sentence text and the video's title, and shows **Saved**.
+3. The app cuts the fragment of that sentence out of the video as an `.mp4` (with `ffmpeg`) and stores it. The button changes to **Saved**.
 
 Good to know:
-- If you have not set up the server and key yet, **Save** opens Settings first and then saves.
-- Each sentence can be saved only once from the app, so you do not create duplicates by accident. If the connection drops while saving, the message says the sentence **may** already be saved: check on the server before saving it again.
+- Each sentence can be saved only once from the app, so you do not create duplicates by accident.
 - The fragment starts a little before the sentence and ends a little after it, and uses the audio track you picked.
 - If the exact timing of the sentence is unknown (for example picture-based subtitles), the sentence is saved without a video, and you are told so.
+
+#### Your saved sentences (on this computer)
+
+Click the **bookmarks icon** in the control bar. A list opens on the right, newest first:
+
+- **Click a sentence** to play its video fragment. The sentence is shown as a subtitle, so you can click its words and translate them as usual. Note that this replaces the video that is open now.
+- The **folder icon** shows the saved files in Finder; the **bin icon** deletes a sentence and its files (after asking).
+- Everything lives in `~/Library/Application Support/dev.learner.learnerVideoPlayer/sentences/`: a SQLite database (`sentences.db`) and the files `sentence-<number>.mp4` / `.srt`. The list is only about sentences saved to **This computer**.
+
+#### Saving to the FreqApp server
+
+1. In **Settings** choose **FreqApp server**.
+2. Fill in:
+   - **Server address**, for example `https://freqapp.example.com` (ask whoever runs the server). Just the address, without `/api/v1/sentences`.
+   - **API key**, which starts with `tvs_`. An admin creates it in FreqApp under **Settings → API keys** and it is shown **only once**, so copy it right away.
+3. Press **Save**.
+
+Click the eye icon in the key field to check what you typed. **To replace the key** later, open Settings, type the new key over the old one and press **Save**. The new key is used immediately. The key is stored on this computer only and is only ever sent to the server address you entered.
+
+Good to know:
+- If you chose the server but have not entered the address and key yet, **Save** opens Settings first and then saves.
+- If the connection drops while saving, the message says the sentence **may** already be saved: check on the server before saving it again.
 - The server accepts videos up to 100 MB and 30 saves per minute. A short fragment is far below the size limit.
 
 ### Subtitles
@@ -370,8 +386,9 @@ lib/
                    WebviewTranslationLauncher (data); TranslationPanel (presentation)
     youtube/       VideoResolver, youtubeVideoId, cleanAutoCaptions (domain);
                    YtDlpVideoResolver (data); open-link dialog (presentation)
-    sentences/     SaveSentence, SentenceRepository, ClipCutter (domain);
-                   FreqAppApi, FfmpegClipCutter (data); Save button (presentation)
+    sentences/     SaveSentence, SentenceRepository, SentenceLibrary, ClipCutter (domain);
+                   FreqAppApi, SqliteSentenceLibrary, FfmpegClipCutter (data);
+                   Save button, saved-sentences panel (presentation)
     settings/      SettingsRepository (domain) ← PrefsSettingsRepository (data); native language
   main.dart        composition root: the only place that wires concrete implementations
 ```
@@ -383,7 +400,9 @@ lib/
 | `media_kit` (libmpv) | Playback, audio tracks, subtitle tracks and the text of the current subtitle |
 | `webview_flutter` | The translation panel (embedded web view) |
 | `flutter_riverpod` | State management and dependency injection |
-| `shared_preferences` | Remembering the chosen language |
+| `shared_preferences` | Remembering the chosen language, the save destination and the server settings |
+| `sqflite_common_ffi` | The SQLite list of sentences saved on this computer (`sqlite_sentence_library.dart`) |
+| `path_provider` | Finding the app's data folder |
 | `file_selector` | Open-file dialogs |
 | `desktop_drop` | Drag and drop |
 | `http` | Sending sentences to the FreqApp API (one file, `freqapp_api.dart`) |

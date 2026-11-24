@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:learner_video_player/features/player/domain/video_source.dart';
 import 'package:learner_video_player/features/sentences/domain/clip_cutter.dart';
@@ -28,12 +30,18 @@ const _cue = SubtitleCue(
 void main() {
   late FakeSentenceRepository repository;
   late FakeClipCutter cutter;
+  late FakeSentenceLibrary library;
   late SaveSentence save;
 
   setUp(() {
     repository = FakeSentenceRepository();
     cutter = FakeClipCutter();
-    save = SaveSentence(repository: repository, cutter: cutter);
+    library = FakeSentenceLibrary();
+    save = SaveSentence(
+      repository: repository,
+      cutter: cutter,
+      library: library,
+    );
   });
 
   Future<SavedSentence> run({
@@ -161,5 +169,70 @@ void main() {
       source: const VideoSource(path: '/v.mp4', title: '  '),
     );
     expect(repository.uploads.single.$1.tvShowName, isNull);
+  });
+
+  group('saving on this computer', () {
+    Future<SavedSentence> runLocal({
+      SubtitleCue cue = _cue,
+      VideoSource? source = _source,
+    }) => save.saveLocally(cue: cue, source: source);
+
+    test('keeps the sentence with its clip and does not upload', () async {
+      final saved = await runLocal();
+
+      final stored = library.added.single;
+      expect(stored.text, "I don't know what you mean.");
+      expect(stored.showName, 'Friends');
+      expect(stored.hasVideo, isTrue);
+      expect(saved.withVideo, isTrue);
+      expect(repository.uploads, isEmpty);
+      expect(cutter.cuts.single.from, const Duration(milliseconds: 9750));
+      expect(cutter.cuts.single.to, const Duration(milliseconds: 13300));
+    });
+
+    test('removes the temporary clip afterwards', () async {
+      await runLocal();
+      expect(cutter.discarded, 1);
+    });
+
+    test('saves the text alone when the timing is unknown', () async {
+      final saved = await runLocal(cue: const SubtitleCue(text: 'Hello'));
+
+      expect(cutter.cuts, isEmpty);
+      expect(library.added.single.hasVideo, isFalse);
+      expect(saved.withVideo, isFalse);
+    });
+
+    test('a failing disk is reported as a storage error', () async {
+      library.failure = const FileSystemException('disk full');
+
+      await expectLater(
+        runLocal(),
+        throwsA(
+          isA<SentenceSaveException>().having(
+            (e) => e.error,
+            'error',
+            SaveError.storage,
+          ),
+        ),
+      );
+      expect(cutter.discarded, 1);
+    });
+
+    test('a cutting problem is reported and nothing is stored', () async {
+      cutter.failure = const ClipException('ffmpeg is not installed');
+
+      await expectLater(
+        runLocal(),
+        throwsA(
+          isA<SentenceSaveException>().having(
+            (e) => e.error,
+            'error',
+            SaveError.clip,
+          ),
+        ),
+      );
+      expect(library.added, isEmpty);
+    });
   });
 }

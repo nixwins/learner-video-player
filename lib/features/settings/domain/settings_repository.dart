@@ -9,6 +9,12 @@ abstract interface class SettingsRepository {
 
   Future<void> saveTranslationPanelWidth(double width);
 
+  /// Where Save puts sentences (`server` or `local`), or null if the user
+  /// never chose.
+  String? get saveDestination;
+
+  Future<void> saveSaveDestination(String destination);
+
   /// The FreqApp server address, or null if it was never set.
   String? get freqAppServer;
 

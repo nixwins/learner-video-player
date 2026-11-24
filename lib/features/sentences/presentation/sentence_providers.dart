@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:learner_video_player/features/player/presentation/player_providers.dart';
 import 'package:learner_video_player/features/sentences/domain/clip_cutter.dart';
+import 'package:learner_video_player/features/sentences/domain/save_destination.dart';
 import 'package:learner_video_player/features/sentences/domain/save_sentence.dart';
+import 'package:learner_video_player/features/sentences/domain/sentence_library.dart';
 import 'package:learner_video_player/features/sentences/domain/sentence_repository.dart';
 import 'package:learner_video_player/features/settings/presentation/settings_providers.dart';
 import 'package:learner_video_player/features/subtitles/domain/subtitle_cue.dart';
@@ -16,11 +18,46 @@ final clipCutterProvider = Provider<ClipCutter>(
   (ref) => throw UnimplementedError('Override clipCutterProvider'),
 );
 
+/// Wired in `main.dart`.
+final sentenceLibraryProvider = Provider<SentenceLibrary>(
+  (ref) => throw UnimplementedError('Override sentenceLibraryProvider'),
+);
+
 final saveSentenceProvider = Provider<SaveSentence>(
   (ref) => SaveSentence(
     repository: ref.watch(sentenceRepositoryProvider),
     cutter: ref.watch(clipCutterProvider),
+    library: ref.watch(sentenceLibraryProvider),
   ),
+);
+
+/// The sentences saved on this computer, newest first.
+class SavedSentencesNotifier extends AsyncNotifier<List<LocalSentence>> {
+  @override
+  Future<List<LocalSentence>> build() =>
+      ref.read(sentenceLibraryProvider).all();
+
+  Future<void> remove(LocalSentence sentence) async {
+    await ref.read(sentenceLibraryProvider).remove(sentence.id);
+    ref.invalidateSelf();
+  }
+}
+
+final savedSentencesProvider =
+    AsyncNotifierProvider<SavedSentencesNotifier, List<LocalSentence>>(
+      SavedSentencesNotifier.new,
+    );
+
+/// Whether the list of saved sentences is shown beside the video.
+class SavedPanelNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void set(bool open) => state = open;
+}
+
+final savedPanelOpenProvider = NotifierProvider<SavedPanelNotifier, bool>(
+  SavedPanelNotifier.new,
 );
 
 enum SaveStatus { idle, saving, saved, failed }
@@ -50,8 +87,9 @@ class SentenceSaveNotifier extends Notifier<Map<String, SaveState>> {
     final current = stateOf(cue).status;
     if (current == SaveStatus.saving || current == SaveStatus.saved) return;
 
+    final local = ref.read(saveDestinationProvider) == SaveDestination.local;
     final credentials = ref.read(freqAppSettingsProvider).credentials;
-    if (credentials == null) {
+    if (!local && credentials == null) {
       _set(
         key,
         const SaveState(
@@ -64,19 +102,25 @@ class SentenceSaveNotifier extends Notifier<Map<String, SaveState>> {
 
     _set(key, const SaveState(SaveStatus.saving));
     try {
-      final saved = await ref.read(saveSentenceProvider)(
-        cue: cue,
-        source: ref.read(playerGatewayProvider).currentSource(),
-        credentials: credentials,
-      );
+      final source = ref.read(playerGatewayProvider).currentSource();
+      final saveSentence = ref.read(saveSentenceProvider);
+      final saved = local
+          ? await saveSentence.saveLocally(cue: cue, source: source)
+          : await saveSentence(
+              cue: cue,
+              source: source,
+              credentials: credentials!,
+            );
+      if (local) ref.invalidate(savedSentencesProvider);
+      final where = local ? 'Saved on this computer' : 'Saved';
       _set(
         key,
         SaveState(
           SaveStatus.saved,
           message: saved.withVideo
-              ? 'Saved with its video fragment.'
-              : 'Saved without a video: the exact timing of this sentence is '
-                    'unknown.',
+              ? '$where with its video fragment.'
+              : '$where without a video: the exact timing of this sentence '
+                    'is unknown.',
         ),
       );
     } on SentenceSaveException catch (e) {
