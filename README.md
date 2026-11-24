@@ -20,7 +20,7 @@ Works on **macOS**. The ready-made app is built for Macs with an Apple chip (M1 
 ## Table of contents
 
 - [Install](#install): one Homebrew command, or a `.dmg` file
-- [Uninstall](#uninstall)
+- [Update](#update) and [Uninstall](#uninstall)
 - [Quick tour](#quick-tour): a short guide with screenshots
 - Build from source: [what you need](#1-build-from-source-what-you-need), [install the tools](#2-build-from-source-install-the-tools), [download and start](#3-build-from-source-download-and-start-the-app)
 - [How to use it (details)](#4-how-to-use-it-details)
@@ -87,6 +87,34 @@ To update, download the newer `.dmg` and replace the app in **Applications**. Yo
 The packaged `ffmpeg` is a GPL build from [martin-riedl.de](https://ffmpeg.martin-riedl.de) and `yt-dlp` comes from [its official releases](https://github.com/yt-dlp/yt-dlp/releases).
 
 > **Intel Mac?** The ready-made app does not run on it yet. [Build it from source](#1-build-from-source-what-you-need) instead.
+
+### Update
+
+Your saved sentences and settings are kept when you update. Close the app first.
+
+**Installed with Homebrew**
+
+```bash
+brew update
+brew upgrade --cask learner-video-player
+```
+
+`brew update` fetches the list of newest versions, and the second command installs the newer app if there is one. To see what is outdated first, run `brew outdated --cask`. To update `yt-dlp` as well (do this when a YouTube link stops working):
+
+```bash
+brew upgrade yt-dlp
+```
+
+**Installed from the .dmg**
+
+1. Go to the [Releases page](https://github.com/nixwins/learner-video-player/releases/latest) and download the newest `.dmg`.
+2. Quit the app, then drag the **old** app from **Applications** to the Trash. (If you see both *LearnerVideoPlayer* and *Learner Video Player*, remove the second one: that was its old name.)
+3. Open the new `.dmg` and drag **LearnerVideoPlayer** onto **Applications**.
+4. macOS may ask you to allow the app again, as on the first start: right-click it → **Open**.
+
+**Which version do I have?** In **Applications**, click the app once and press `Cmd + I`: the version is shown at the top. With Homebrew you can also run `brew info --cask learner-video-player`.
+
+Updating a copy you built from source is described in [Build from source, Step 3](#updating-to-a-newer-version).
 
 ### Uninstall
 
