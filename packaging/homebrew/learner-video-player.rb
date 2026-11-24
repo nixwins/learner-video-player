@@ -1,6 +1,6 @@
 cask "learner-video-player" do
-  version "1.0.0"
-  sha256 "eaea2d92366b9be2a83e9f66a94ab755f3a53009c3a92a1886b9b4ee62e63162"
+  version "1.1.0"
+  sha256 "8ccda72193ce43dfa3f5e14438df5e62597896e13b20ceec7affc2f81c14163c"
 
   url "https://github.com/nixwins/learner-video-player/releases/download/v#{version}/LearnerVideoPlayer-#{version}-arm64.zip"
   name "Learner Video Player"
