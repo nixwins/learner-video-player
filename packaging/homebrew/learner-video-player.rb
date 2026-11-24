@@ -11,13 +11,13 @@ cask "learner-video-player" do
   depends_on formula: "ffmpeg"
   depends_on formula: "yt-dlp"
 
-  app "Learner Video Player.app"
+  app "LearnerVideoPlayer.app"
 
   # The app is signed ad-hoc (no paid Apple certificate), so Gatekeeper would
   # block the first start.
   postflight do
     system_command "/usr/bin/xattr",
-                   args: ["-dr", "com.apple.quarantine", "#{appdir}/Learner Video Player.app"]
+                   args: ["-dr", "com.apple.quarantine", "#{appdir}/LearnerVideoPlayer.app"]
   end
 
   zap trash: [

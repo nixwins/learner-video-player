@@ -20,6 +20,7 @@ Works on **macOS**. The ready-made app is built for Macs with an Apple chip (M1 
 ## Table of contents
 
 - [Install](#install): one Homebrew command, or a `.dmg` file
+- [Uninstall](#uninstall)
 - [Quick tour](#quick-tour): a short guide with screenshots
 - Build from source: [what you need](#1-build-from-source-what-you-need), [install the tools](#2-build-from-source-install-the-tools), [download and start](#3-build-from-source-download-and-start-the-app)
 - [How to use it (details)](#4-how-to-use-it-details)
@@ -63,7 +64,7 @@ When it finishes it prints **Next steps** with two or three commands. Copy and r
 brew install --cask nixwins/tap/learner-video-player
 ```
 
-This puts **Learner Video Player** into your **Applications** folder and installs `ffmpeg` and `yt-dlp` (they are used for saving video fragments and for YouTube links). macOS does not block the app when it is installed this way. Open it from **Launchpad** or **Applications**.
+This puts **LearnerVideoPlayer** into your **Applications** folder and installs `ffmpeg` and `yt-dlp` (they are used for saving video fragments and for YouTube links). macOS does not block the app when it is installed this way. Open it from **Launchpad** or **Applications**.
 
 | I want to… | Command |
 | --- | --- |
@@ -75,17 +76,55 @@ This puts **Learner Video Player** into your **Applications** folder and install
 Everything is inside, including `ffmpeg` and `yt-dlp`. No Homebrew needed.
 
 1. Open the [Releases page](https://github.com/nixwins/learner-video-player/releases/latest) and download the file called `LearnerVideoPlayer-…-arm64.dmg`.
-2. Double-click the downloaded file. A window opens: **drag Learner Video Player onto the Applications folder**.
+2. Double-click the downloaded file. A window opens: **drag LearnerVideoPlayer onto the Applications folder**.
 3. Open **Applications** and start the app. **The first time, macOS will refuse to open it**, because the app is not signed with a paid Apple certificate. Allow it once:
    - **Right-click** the app, choose **Open**, then click **Open** in the question that appears.
-   - If macOS only offers **Done**: open **System Settings → Privacy & Security**, scroll down to the message about *Learner Video Player* and click **Open Anyway**.
-   - Or run this in the Terminal: `xattr -dr com.apple.quarantine "/Applications/Learner Video Player.app"`
+   - If macOS only offers **Done**: open **System Settings → Privacy & Security**, scroll down to the message about *LearnerVideoPlayer* and click **Open Anyway**.
+   - Or run this in the Terminal: `xattr -dr com.apple.quarantine "/Applications/LearnerVideoPlayer.app"`
 
 To update, download the newer `.dmg` and replace the app in **Applications**. YouTube changes often, so if a YouTube link stops working, install the newest version.
 
 The packaged `ffmpeg` is a GPL build from [martin-riedl.de](https://ffmpeg.martin-riedl.de) and `yt-dlp` comes from [its official releases](https://github.com/yt-dlp/yt-dlp/releases).
 
 > **Intel Mac?** The ready-made app does not run on it yet. [Build it from source](#1-build-from-source-what-you-need) instead.
+
+### Uninstall
+
+Pick the way you installed the app.
+
+**Installed with Homebrew**
+
+```bash
+brew uninstall --cask learner-video-player
+```
+
+This removes the app but **keeps your saved sentences and settings**, so they are still there if you install it again. To remove those too, use `--zap` instead:
+
+```bash
+brew uninstall --zap --cask learner-video-player
+```
+
+Homebrew also installed `ffmpeg` and `yt-dlp` for the app, and it leaves them in place because other programs may use them. Remove them only if you do not need them:
+
+```bash
+brew uninstall ffmpeg yt-dlp
+```
+
+Finally, if you want to forget the app's Homebrew source as well: `brew untap nixwins/tap`.
+
+**Installed from the .dmg**
+
+1. Quit the app.
+2. Open **Applications** and drag **LearnerVideoPlayer** (in older versions: *Learner Video Player*) to the **Trash**.
+3. Optional: delete the app's data. **This permanently removes your saved sentences, their video fragments and your settings (including the FreqApp key).** Paste this into the Terminal:
+
+```bash
+rm -rf ~/Library/Application\ Support/dev.learner.learnerVideoPlayer \
+       ~/Library/Preferences/dev.learner.learnerVideoPlayer.plist \
+       ~/Library/Caches/dev.learner.learnerVideoPlayer
+```
+
+YouTube videos that the app downloaded are kept in the system's temporary folder, which macOS cleans up by itself.
 
 ---
 
@@ -267,7 +306,7 @@ The first run takes a few minutes. You only need to do this step once.
 flutter run -d macos
 ```
 
-The first start takes a few minutes because the app is being built. Next starts are much faster. A window called **learner_video_player** will open.
+The first start takes a few minutes because the app is being built. Next starts are much faster. A window called **LearnerVideoPlayer** will open.
 
 To stop the app, close its window, or press `q` in the Terminal.
 
@@ -406,7 +445,7 @@ Click the **translate** button (the one with the two letters) in the control bar
 ## 5. Troubleshooting
 
 **macOS says the app "cannot be opened", "is from an unidentified developer" or "is damaged"** (only for the `.dmg` download)
-The app is not signed with a paid Apple certificate. Allow it once: right-click the app → **Open** → **Open**, or run `xattr -dr com.apple.quarantine "/Applications/Learner Video Player.app"`. See [Install, way 2](#way-2-download-the-app-file-dmg).
+The app is not signed with a paid Apple certificate. Allow it once: right-click the app → **Open** → **Open**, or run `xattr -dr com.apple.quarantine "/Applications/LearnerVideoPlayer.app"`. See [Install, way 2](#way-2-download-the-app-file-dmg).
 
 **`brew install --cask nixwins/tap/learner-video-player` says the tap or cask was not found**
 Run `brew update` and try again. Check that you copied the whole command, including `nixwins/tap/`.

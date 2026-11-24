@@ -14,7 +14,7 @@ case "$(uname -m)" in
 esac
 
 VERSION=$(sed -n 's/^version: *\([0-9.]*\).*/\1/p' pubspec.yaml)
-APP_NAME="Learner Video Player"
+APP_NAME="LearnerVideoPlayer"
 VENDOR="build/vendor/$ARCH"
 STAGE="build/dmg/stage"
 DMG="build/dmg/LearnerVideoPlayer-$VERSION-$ARCH.dmg"
@@ -36,7 +36,7 @@ chmod +x "$VENDOR/ffmpeg" "$VENDOR/yt-dlp"
 
 echo "==> Building the app"
 flutter build macos --release
-BUILT="build/macos/Build/Products/Release/learner_video_player.app"
+BUILT="build/macos/Build/Products/Release/LearnerVideoPlayer.app"
 
 echo "==> Assembling $APP_NAME.app"
 rm -rf "$STAGE"
