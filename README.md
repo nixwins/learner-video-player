@@ -27,6 +27,12 @@ No Flutter, Xcode or Homebrew needed. ffmpeg and yt-dlp are already inside.
 
 The packaged ffmpeg is a GPL build from [martin-riedl.de](https://ffmpeg.martin-riedl.de) and yt-dlp comes from [its official releases](https://github.com/yt-dlp/yt-dlp/releases). If a YouTube link stops working, install a newer app version: YouTube changes often and the packaged yt-dlp gets old.
 
+**Or with one Homebrew command** (installs ffmpeg and yt-dlp too, updates with `brew upgrade`):
+
+```bash
+brew install --cask nixwins/tap/learner-video-player
+```
+
 Prefer to build it yourself? Continue with the step-by-step guide below.
 
 ---
@@ -340,7 +346,7 @@ Run the app with `flutter run -d macos` and look at the messages in the Terminal
 ./scripts/make_dmg.sh
 ```
 
-It builds the release app, downloads ffmpeg and yt-dlp for your CPU, puts them into `Contents/Resources/bin` (the app looks there first), signs everything ad-hoc and creates `build/dmg/LearnerVideoPlayer-<version>-<arch>.dmg`. The result only runs on the CPU type you built on.
+It builds the release app, creates a slim `.zip` for the Homebrew cask (`packaging/homebrew/learner-video-player.rb`, copy it to `Casks/` in the `nixwins/homebrew-tap` repository and update `version` and `sha256`), downloads ffmpeg and yt-dlp for your CPU, puts them into `Contents/Resources/bin` (the app looks there first), signs everything ad-hoc and creates `build/dmg/LearnerVideoPlayer-<version>-<arch>.dmg`. The result only runs on the CPU type you built on.
 
 ### Commands
 
