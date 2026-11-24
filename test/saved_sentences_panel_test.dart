@@ -81,7 +81,7 @@ void main() {
 
     expect(find.text('Saved sentences · 2'), findsOneWidget);
     expect(find.text('first one'), findsOneWidget);
-    expect(find.text('Friends · 2026-11-24'), findsNWidgets(2));
+    expect(find.text('2026-11-24 · Friends'), findsNWidgets(2));
     final top = tester.getTopLeft(find.text('second one')).dy;
     final bottom = tester.getTopLeft(find.text('first one')).dy;
     expect(top, lessThan(bottom));

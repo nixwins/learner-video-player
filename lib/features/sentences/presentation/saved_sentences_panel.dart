@@ -169,8 +169,8 @@ class _Tile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final subtitle = [
-      ?sentence.showName,
       _date(sentence.savedAt),
+      ?sentence.showName,
       if (!sentence.hasVideo) 'no video',
     ].join(' · ');
     return ListTile(

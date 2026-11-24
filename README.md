@@ -4,51 +4,156 @@ A desktop video player for people who learn English by watching movies and serie
 
 **Click any word in the subtitles → the video pauses → a Google Translate panel slides in on the right, inside the same window, with that word translated into your language.**
 
+![A short demo: open a YouTube link, click a word, translate it, save the sentence, play it again from the saved list](docs/images/demo.gif)
+
 - Plays `mp4`, `mov` and `avi` files, and **YouTube links** (with English subtitles)
-- Pick the audio track and the subtitles
-- Load your own `.srt` subtitle file (or drag it onto the window)
-- Every subtitle word is clickable
+- Every subtitle word is clickable; translate a word or the whole sentence, replay the sentence
+- **Save a sentence with its video fragment**: on your own computer (a list you can browse and replay) or to a FreqApp server
+- Jump back and forward 10 seconds, or to the previous / next sentence
+- Pick the audio track and the subtitles, or load your own `.srt` file
 - Translates from English into the language you choose (Kazakh by default, your choice is remembered)
 
-Works on **macOS**. Windows is not supported yet: the embedded translation panel uses a web view that currently exists only for macOS.
-
----
-
-## Quick install (ready-made app)
-
-No Flutter, Xcode or Homebrew needed. ffmpeg and yt-dlp are already inside.
-
-1. Open the [Releases page](https://github.com/nixwins/learner-video-player/releases) and download the latest `LearnerVideoPlayer-…-arm64.dmg` (for Macs with an Apple chip: M1, M2, M3, M4).
-2. Open the downloaded file and drag **Learner Video Player** onto the **Applications** folder.
-3. The app is not signed with a paid Apple certificate, so macOS blocks the first start. To allow it **once**:
-   - Open **Applications**, **right-click** the app and choose **Open**, then click **Open** again.
-   - If macOS only offers "Done": open **System Settings → Privacy & Security**, scroll down to the message about *Learner Video Player* and click **Open Anyway**.
-   - Or in Terminal: `xattr -dr com.apple.quarantine "/Applications/Learner Video Player.app"`
-
-The packaged ffmpeg is a GPL build from [martin-riedl.de](https://ffmpeg.martin-riedl.de) and yt-dlp comes from [its official releases](https://github.com/yt-dlp/yt-dlp/releases). If a YouTube link stops working, install a newer app version: YouTube changes often and the packaged yt-dlp gets old.
-
-**Or with one Homebrew command** (installs ffmpeg and yt-dlp too, updates with `brew upgrade`):
-
-```bash
-brew install --cask nixwins/tap/learner-video-player
-```
-
-Prefer to build it yourself? Continue with the step-by-step guide below.
+Works on **macOS**. The ready-made app is built for Macs with an Apple chip (M1 or newer). Windows is not supported yet.
 
 ---
 
 ## Table of contents
 
-1. [What you need](#1-what-you-need)
-2. [Install on macOS, step by step](#2-install-on-macos-step-by-step)
-3. [Download and start the app](#3-download-and-start-the-app)
-4. [How to use it](#4-how-to-use-it)
-5. [Troubleshooting](#5-troubleshooting)
-6. [For developers](#6-for-developers)
+- [Install](#install): one Homebrew command, or a `.dmg` file
+- [Quick tour](#quick-tour): a short guide with screenshots
+- Build from source: [what you need](#1-build-from-source-what-you-need), [install the tools](#2-build-from-source-install-the-tools), [download and start](#3-build-from-source-download-and-start-the-app)
+- [How to use it (details)](#4-how-to-use-it-details)
+- [Troubleshooting](#5-troubleshooting)
+- [For developers](#6-for-developers)
 
 ---
 
-## 1. What you need
+## Install
+
+Pick **one** of the two ways. You do not need to know how to program, and you do not need Xcode or Flutter.
+
+> **What is the Terminal?** It is a window where you type commands.
+> On a Mac press `Cmd + Space`, type `Terminal` and press `Enter`.
+> Every grey box below that looks like code is a command: copy it, paste it into the Terminal, press `Enter`, and wait until it finishes.
+
+### Way 1. One command with Homebrew (recommended)
+
+[Homebrew](https://brew.sh) is a tool that installs apps from the Terminal. If `brew --version` prints a version, you already have it. If not, install it first (see [Step 2](#step-2-install-homebrew-a-tool-that-installs-other-tools) for the details):
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Then install the app:
+
+```bash
+brew install --cask nixwins/tap/learner-video-player
+```
+
+This puts **Learner Video Player** into your **Applications** folder and installs `ffmpeg` and `yt-dlp` (they are used for saving video fragments and for YouTube links). macOS does not block the app when it is installed this way. Open it from **Launchpad** or **Applications**.
+
+| I want to… | Command |
+| --- | --- |
+| Update the app (and yt-dlp) | `brew upgrade --cask learner-video-player && brew upgrade yt-dlp` |
+| Remove the app | `brew uninstall --cask learner-video-player` |
+
+### Way 2. Download the app file (.dmg)
+
+Everything is inside, including `ffmpeg` and `yt-dlp`. No Homebrew needed.
+
+1. Open the [Releases page](https://github.com/nixwins/learner-video-player/releases/latest) and download the file called `LearnerVideoPlayer-…-arm64.dmg`.
+2. Double-click the downloaded file. A window opens: **drag Learner Video Player onto the Applications folder**.
+3. Open **Applications** and start the app. **The first time, macOS will refuse to open it**, because the app is not signed with a paid Apple certificate. Allow it once:
+   - **Right-click** the app, choose **Open**, then click **Open** in the question that appears.
+   - If macOS only offers **Done**: open **System Settings → Privacy & Security**, scroll down to the message about *Learner Video Player* and click **Open Anyway**.
+   - Or run this in the Terminal: `xattr -dr com.apple.quarantine "/Applications/Learner Video Player.app"`
+
+To update, download the newer `.dmg` and replace the app in **Applications**. YouTube changes often, so if a YouTube link stops working, install the newest version.
+
+The packaged `ffmpeg` is a GPL build from [martin-riedl.de](https://ffmpeg.martin-riedl.de) and `yt-dlp` comes from [its official releases](https://github.com/yt-dlp/yt-dlp/releases).
+
+> **Intel Mac?** The ready-made app does not run on it yet. [Build it from source](#1-build-from-source-what-you-need) instead.
+
+---
+
+## Quick tour
+
+A five-minute walk through the app. The window below is the real app.
+
+### 1. Start
+
+Start the app. You see a drop zone. Choose how to open a video:
+
+- **Open video**: pick an `mp4`, `mov` or `avi` file (or just drag the file onto the window), or
+- **Open YouTube link**: watch a YouTube video with English subtitles.
+
+![The start screen with the Open video and Open YouTube link buttons](docs/images/1_start.png)
+
+### 2. Open a YouTube link
+
+Paste a link and press **Play**. If you have a YouTube link in your clipboard, it is already filled in. The video is downloaded once (up to 720p) together with its English subtitles, so the first start takes a moment. Next time it opens instantly.
+
+![The "Open a YouTube link" window with a link pasted](docs/images/2_link.png)
+
+### 3. Watch with clickable subtitles
+
+The subtitles are drawn by the app, so **every word is clickable**. Move the mouse to show the control bar:
+
+| Button | What it does |
+| --- | --- |
+| Folder / link icons | Open a video file / a YouTube link |
+| ⏮ and ⏭ | Previous / next subtitle sentence |
+| ↺10 and ↻10 | Back / forward 10 seconds |
+| Big round button | Play / pause (or press **Space**) |
+| **CC** | Choose subtitles or load an `.srt` file |
+| Translate icon | Choose the language you translate into |
+| Bookmarks icon | Your [saved sentences](#6-see-your-saved-sentences) |
+| Gear | [Settings](#7-settings) |
+
+![Playing a video with subtitles and the control bar](docs/images/3_play.jpg)
+
+### 4. Click a word to translate it
+
+Click any word. The video **pauses** and a panel opens on the right with:
+
+- the **whole sentence** (click other words in it to translate them),
+- **Translate sentence**: translates the entire sentence,
+- **Play again**: replays just this sentence in the video,
+- **Save**: keeps this sentence together with its video fragment,
+- Google Translate with the translation of the word you clicked.
+
+Drag the thin line between the video and the panel to change its width. Press **Esc** to close the panel and **Space** to continue watching.
+
+![The translation panel: the sentence, its buttons and the translation of the clicked word](docs/images/4_translate.jpg)
+
+### 5. Save a sentence
+
+Press **Save**. The app cuts out exactly this sentence (with a little room before and after) as a short `.mp4` and keeps it. The button turns into **Saved**. Each sentence can be saved once, so you cannot create duplicates by accident.
+
+![After pressing Save the sentence is marked as saved on this computer](docs/images/5_saved.jpg)
+
+### 6. See your saved sentences
+
+Click the **bookmarks icon**. Your saved sentences appear on the right, newest first. **Click a sentence to play its video fragment**; the sentence is shown as a subtitle, so you can still click its words. The folder icon shows the files in Finder and the bin icon deletes a sentence.
+
+![The list of saved sentences](docs/images/6_list.png)
+
+![A saved fragment playing with its sentence as a subtitle](docs/images/7_clip.jpg)
+
+### 7. Settings
+
+Click the **gear icon**. Under **Save sentences to** choose where **Save** puts sentences:
+
+- **This computer** (the default): files and a list on your Mac, no account needed.
+- **FreqApp server**: upload to your FreqApp server. Enter its address and your API key ([details below](#saving-to-the-freqapp-server)).
+
+![The settings window with the two save options](docs/images/8_settings.png)
+
+> The video in the screenshots is "Top 10 Funniest Animated Movie Moments" by MsMojo. It is shown only to demonstrate the app; all rights belong to its owners.
+
+---
+
+## 1. Build from source: what you need
 
 | Thing | Why | Free? |
 | --- | --- | --- |
@@ -69,7 +174,7 @@ You do **not** need to know how to program. You will copy and paste a few comman
 
 ---
 
-## 2. Install on macOS, step by step
+## 2. Build from source: install the tools
 
 ### Step 1. Install Xcode
 
@@ -118,11 +223,11 @@ flutter doctor
 You should see green check marks next to **Flutter** and **Xcode - develop for iOS and macOS**.
 Other lines (Android, Chrome) can be ignored: this app only needs macOS.
 
-If something under macOS is red, see [Troubleshooting](#6-troubleshooting).
+If something under macOS is red, see [Troubleshooting](#5-troubleshooting).
 
 ---
 
-## 3. Download and start the app
+## 3. Build from source: download and start the app
 
 ### Step 1. Download the project
 
@@ -177,7 +282,7 @@ By default macOS apps are "sandboxed" and may only read files you explicitly all
 
 ---
 
-## 4. How to use it
+## 4. How to use it (details)
 
 ### Open a video
 
@@ -286,6 +391,12 @@ Click the **translate** button (the one with the two letters) in the control bar
 ---
 
 ## 5. Troubleshooting
+
+**macOS says the app "cannot be opened", "is from an unidentified developer" or "is damaged"** (only for the `.dmg` download)
+The app is not signed with a paid Apple certificate. Allow it once: right-click the app → **Open** → **Open**, or run `xattr -dr com.apple.quarantine "/Applications/Learner Video Player.app"`. See [Install, way 2](#way-2-download-the-app-file-dmg).
+
+**`brew install --cask nixwins/tap/learner-video-player` says the tap or cask was not found**
+Run `brew update` and try again. Check that you copied the whole command, including `nixwins/tap/`.
 
 **`zsh: command not found: flutter`**
 Flutter is not on your PATH. Close the Terminal and open a new one. If it still fails, run `brew install --cask flutter` again and read what Homebrew prints at the end.
