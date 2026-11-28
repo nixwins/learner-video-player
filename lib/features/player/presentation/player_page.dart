@@ -273,7 +273,7 @@ class _EmptyState extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         const Text(
-          'mp4 · mov · avi   —   subtitles: drop an .srt file',
+          'mp4 · mkv · mov · avi   —   subtitles: drop an .srt file',
           style: TextStyle(color: Colors.white54),
         ),
         const SizedBox(height: 24),

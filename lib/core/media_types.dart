@@ -1,7 +1,7 @@
 import 'package:file_selector/file_selector.dart';
 
 /// Single source of truth for supported file types.
-const videoExtensions = ['mp4', 'mov', 'avi'];
+const videoExtensions = ['mp4', 'mkv', 'mov', 'avi'];
 const subtitleExtensions = ['srt', 'vtt', 'ass'];
 
 const videoTypeGroup = XTypeGroup(label: 'Video', extensions: videoExtensions);
